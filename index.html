@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bagh Chal - बाघ चाल</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #e0e0e0;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: #e94560;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        header h2 {
+            font-size: 1.2rem;
+            color: #a8a8a8;
+            font-weight: normal;
+            margin-top: 4px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            padding: 10px 20px;
+        }
+
+        .info-panel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            width: 220px;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-panel h3 {
+            color: #e94560;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .stat-label {
+            color: #a8a8a8;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .turn-indicator {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .turn-tiger {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid #e94560;
+            color: #e94560;
+        }
+
+        .turn-goat {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+        }
+
+        .phase-indicator {
+            text-align: center;
+            padding: 8px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: rgba(255,255,255,0.05);
+            color: #ccc;
+        }
+
+        #board-container {
+            position: relative;
+            width: 420px;
+            height: 420px;
+        }
+
+        #board-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .piece {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 10;
+            user-select: none;
+        }
+
+        .piece:hover {
+            transform: scale(1.15);
+        }
+
+        .piece.tiger {
+            background: radial-gradient(circle at 35% 35%, #ff6b6b, #c0392b);
+            border: 3px solid #e74c3c;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.5);
+            color: #fff;
+        }
+
+        .piece.goat {
+            background: radial-gradient(circle at 35% 35%, #81c784, #2e7d32);
+            border: 3px solid #4CAF50;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+            color: #fff;
+        }
+
+        .piece.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.7);
+            border-color: #ffd700;
+        }
+
+        .intersection {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 5;
+            transition: background 0.2s;
+        }
+
+        .intersection:hover {
+            background: rgba(255, 215, 0, 0.3);
+        }
+
+        .intersection.valid-move {
+            background: rgba(255, 215, 0, 0.2);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { background: rgba(255, 215, 0, 0.15); }
+            50% { background: rgba(255, 215, 0, 0.35); }
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            color: #fff;
+        }
+
+        .btn-restart:hover {
+            background: linear-gradient(135deg, #ff6b6b, #e94560);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+        }
+
+        .rules-panel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            width: 220px;
+            backdrop-filter: blur(10px);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .rules-panel h3 {
+            color: #e94560;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+
+        .rules-panel ul {
+            padding-left: 16px;
+            color: #bbb;
+        }
+
+        .rules-panel li {
+            margin-bottom: 8px;
+        }
+
+        .rules-panel .tiger-text { color: #e94560; font-weight: bold; }
+        .rules-panel .goat-text { color: #4CAF50; font-weight: bold; }
+
+        .message-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .message-overlay.show {
+            display: flex;
+        }
+
+        .message-box {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid #e94560;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            animation: scaleIn 0.3s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .message-box h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .message-box p {
+            font-size: 1.1rem;
+            color: #ccc;
+            margin-bottom: 24px;
+        }
+
+        .message-box .btn {
+            width: auto;
+            display: inline-block;
+            padding: 12px 32px;
+        }
+
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .info-panel, .rules-panel {
+                width: 420px;
+                max-width: 90vw;
+            }
+        }
+
+        @media (max-width: 460px) {
+            #board-container {
+                width: 340px;
+                height: 340px;
+            }
+            header h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>बाघ चाल - Bagh Chal</h1>
+        <h2>The Tiger Moving Game of Nepal</h2>
+    </header>
+
+    <div class="game-container">
+        <div class="info-panel">
+            <div id="turn-indicator" class="turn-indicator turn-goat">
+                Goat's Turn
+            </div>
+            <div id="phase-indicator" class="phase-indicator">
+                Phase 1: Place Goats
+            </div>
+            <h3>Game Status</h3>
+            <div class="stat">
+                <span class="stat-label">Goats Placed</span>
+                <span class="stat-value" id="goats-placed">0 / 20</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Goats Captured</span>
+                <span class="stat-value" id="goats-captured">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Tigers Trapped</span>
+                <span class="stat-value" id="tigers-trapped">0</span>
+            </div>
+            <h3 style="margin-top: 20px;">Win Conditions</h3>
+            <div style="font-size: 0.85rem; color: #bbb; line-height: 1.6;">
+                <p><span style="color: #e94560; font-weight: bold;">Tigers</span> win by capturing 5 goats</p>
+                <p style="margin-top: 6px;"><span style="color: #4CAF50; font-weight: bold;">Goats</span> win by trapping all 4 tigers</p>
+            </div>
+            <button class="btn btn-restart" onclick="restartGame()">New Game</button>
+        </div>
+
+        <div id="board-container">
+            <canvas id="board-canvas"></canvas>
+        </div>
+
+        <div class="rules-panel">
+            <h3>How to Play</h3>
+            <ul>
+                <li><span class="tiger-text">4 Tigers</span> start on the board corners</li>
+                <li><span class="goat-text">20 Goats</span> are placed one per turn on empty intersections</li>
+                <li>After all goats are placed, both sides take turns moving</li>
+                <li>Pieces move along lines to adjacent intersections</li>
+                <li>Tigers capture goats by jumping over them (the landing spot must be empty)</li>
+                <li>Goats cannot jump</li>
+                <li><span class="tiger-text">Tigers win</span> by capturing 5 goats</li>
+                <li><span class="goat-text">Goats win</span> by blocking all tigers from moving</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="message-overlay" id="message-overlay">
+        <div class="message-box">
+            <h2 id="message-title">Game Over</h2>
+            <p id="message-text">Someone wins!</p>
+            <button class="btn btn-restart" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+    // ===== BAGH CHAL GAME ENGINE =====
+
+    const BOARD_SIZE = 5;
+    const TOTAL_GOATS = 20;
+    const GOATS_TO_WIN = 5; // Tigers win if they capture this many
+
+    // Board positions: 5x5 grid (0,0) to (4,4)
+    // Adjacency includes diagonals on certain intersections
+
+    // Build adjacency map
+    // Lines on the board: horizontal, vertical, and diagonals
+    // Diagonals exist on squares where (row+col) is even
+    const adjacency = {};
+
+    function posKey(r, c) {
+        return `${r},${c}`;
+    }
+
+    function parseKey(key) {
+        const [r, c] = key.split(',').map(Number);
+        return { r, c };
+    }
+
+    // Initialize adjacency
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            adjacency[posKey(r, c)] = [];
+        }
+    }
+
+    // Horizontal and vertical connections
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if (c + 1 < BOARD_SIZE) {
+                adjacency[posKey(r, c)].push(posKey(r, c + 1));
+                adjacency[posKey(r, c + 1)].push(posKey(r, c));
+            }
+            if (r + 1 < BOARD_SIZE) {
+                adjacency[posKey(r, c)].push(posKey(r + 1, c));
+                adjacency[posKey(r + 1, c)].push(posKey(r, c));
+            }
+        }
+    }
+
+    // Diagonal connections: only from positions where (r+c) is even
+    const diagDirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if ((r + c) % 2 === 0) {
+                for (const [dr, dc] of diagDirs) {
+                    const nr = r + dr;
+                    const nc = c + dc;
+                    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+                        if (!adjacency[posKey(r, c)].includes(posKey(nr, nc))) {
+                            adjacency[posKey(r, c)].push(posKey(nr, nc));
+                        }
+                        if (!adjacency[posKey(nr, nc)].includes(posKey(r, c))) {
+                            adjacency[posKey(nr, nc)].push(posKey(r, c));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Game state
+    let board = {};         // posKey -> 'tiger' | 'goat' | null
+    let goatsPlaced = 0;
+    let goatsCaptured = 0;
+    let currentTurn = 'goat'; // 'goat' or 'tiger'
+    let selectedPiece = null;
+    let gameOver = false;
+    let validMoves = [];
+
+    // Canvas and layout
+    const canvas = document.getElementById('board-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('board-container');
+    let boardPixelSize, padding, cellSize;
+
+    function initLayout() {
+        boardPixelSize = container.offsetWidth;
+        canvas.width = boardPixelSize;
+        canvas.height = boardPixelSize;
+        padding = 40;
+        cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
+    }
+
+    function gridToPixel(r, c) {
+        return {
+            x: padding + c * cellSize,
+            y: padding + r * cellSize
+        };
+    }
+
+    function pixelToGrid(px, py) {
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const { x, y } = gridToPixel(r, c);
+                const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
+                if (dist < cellSize * 0.35) {
+                    return { r, c };
+                }
+            }
+        }
+        return null;
+    }
+
+    // ===== DRAWING =====
+
+    function drawBoard() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background
+        ctx.fillStyle = 'rgba(30, 30, 50, 0.8)';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, canvas.width, canvas.height, 16);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1.5;
+
+        // Draw grid lines
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const from = gridToPixel(r, c);
+
+                // Horizontal
+                if (c + 1 < BOARD_SIZE) {
+                    const to = gridToPixel(r, c + 1);
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.stroke();
+                }
+
+                // Vertical
+                if (r + 1 < BOARD_SIZE) {
+                    const to = gridToPixel(r + 1, c);
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.stroke();
+                }
+
+                // Diagonals
+                if ((r + c) % 2 === 0) {
+                    for (const [dr, dc] of diagDirs) {
+                        const nr = r + dr;
+                        const nc = c + dc;
+                        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+                            // Only draw in one direction to avoid double-drawing
+                            if (dr > 0 || (dr === 0 && dc > 0)) {
+                                // Actually for diags, just check positive direction
+                            }
+                            const to = gridToPixel(nr, nc);
+                            ctx.beginPath();
+                            ctx.moveTo(from.x, from.y);
+                            ctx.lineTo(to.x, to.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Draw valid move indicators
+        for (const move of validMoves) {
+            const { r, c } = parseKey(move.to);
+            const { x, y } = gridToPixel(r, c);
+            ctx.beginPath();
+            ctx.arc(x, y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Draw intersection dots
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const { x, y } = gridToPixel(r, c);
+                const key = posKey(r, c);
+
+                if (!board[key]) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Draw pieces
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const key = posKey(r, c);
+                const piece = board[key];
+                if (!piece) continue;
+
+                const { x, y } = gridToPixel(r, c);
+                const isSelected = selectedPiece === key;
+                const radius = isSelected ? 20 : 18;
+
+                // Shadow
+                ctx.beginPath();
+                ctx.arc(x + 2, y + 3, radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fill();
+
+                // Main circle
+                const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, radius);
+                if (piece === 'tiger') {
+                    grad.addColorStop(0, '#ff8a65');
+                    grad.addColorStop(1, '#c0392b');
+                } else {
+                    grad.addColorStop(0, '#a5d6a7');
+                    grad.addColorStop(1, '#2e7d32');
+                }
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Border
+                ctx.strokeStyle = isSelected ? '#ffd700' : (piece === 'tiger' ? '#e74c3c' : '#4CAF50');
+                ctx.lineWidth = isSelected ? 3 : 2;
+                ctx.stroke();
+
+                // Selection glow
+                if (isSelected) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${radius}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(piece === 'tiger' ? '🐅' : '🐐', x, y + 1);
+            }
+        }
+    }
+
+    // ===== GAME LOGIC =====
+
+    function initGame() {
+        board = {};
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                board[posKey(r, c)] = null;
+            }
+        }
+
+        // Place 4 tigers at corners
+        board[posKey(0, 0)] = 'tiger';
+        board[posKey(0, 4)] = 'tiger';
+        board[posKey(4, 0)] = 'tiger';
+        board[posKey(4, 4)] = 'tiger';
+
+        goatsPlaced = 0;
+        goatsCaptured = 0;
+        currentTurn = 'goat';
+        selectedPiece = null;
+        gameOver = false;
+        validMoves = [];
+
+        updateUI();
+        drawBoard();
+        document.getElementById('message-overlay').classList.remove('show');
+    }
+
+    function getPhase() {
+        return goatsPlaced < TOTAL_GOATS ? 1 : 2;
+    }
+
+    function getAdjacentPositions(key) {
+        return adjacency[key] || [];
+    }
+
+    // Check if a tiger at 'from' can jump over 'mid' to 'to'
+    function getJumpTarget(from, mid) {
+        const f = parseKey(from);
+        const m = parseKey(mid);
+        const dr = m.r - f.r;
+        const dc = m.c - f.c;
+        const tr = m.r + dr;
+        const tc = m.c + dc;
+
+        if (tr < 0 || tr >= BOARD_SIZE || tc < 0 || tc >= BOARD_SIZE) return null;
+
+        const toKey = posKey(tr, tc);
+
+        // Check that the jump follows a valid line on the board
+        // The 'from' must be adjacent to 'mid' and 'mid' must be adjacent to 'to'
+        if (!getAdjacentPositions(from).includes(mid)) return null;
+        if (!getAdjacentPositions(mid).includes(toKey)) return null;
+
+        return toKey;
+    }
+
+    function getValidMovesForTiger(key) {
+        const moves = [];
+
+        // Normal moves to adjacent empty spots
+        for (const adj of getAdjacentPositions(key)) {
+            if (!board[adj]) {
+                moves.push({ to: adj, capture: null });
+            }
+        }
+
+        // Jump captures
+        for (const adj of getAdjacentPositions(key)) {
+            if (board[adj] === 'goat') {
+                const jumpTo = getJumpTarget(key, adj);
+                if (jumpTo && !board[jumpTo]) {
+                    moves.push({ to: jumpTo, capture: adj });
+                }
+            }
+        }
+
+        return moves;
+    }
+
+    function getValidMovesForGoat(key) {
+        const moves = [];
+        for (const adj of getAdjacentPositions(key)) {
+            if (!board[adj]) {
+                moves.push({ to: adj, capture: null });
+            }
+        }
+        return moves;
+    }
+
+    function countTrappedTigers() {
+        let trapped = 0;
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const key = posKey(r, c);
+                if (board[key] === 'tiger') {
+                    if (getValidMovesForTiger(key).length === 0) {
+                        trapped++;
+                    }
+                }
+            }
+        }
+        return trapped;
+    }
+
+    function checkWinCondition() {
+        // Tigers win if they captured enough goats
+        if (goatsCaptured >= GOATS_TO_WIN) {
+            return 'tiger';
+        }
+
+        // Goats win if all 4 tigers are trapped
+        if (countTrappedTigers() === 4) {
+            return 'goat';
+        }
+
+        return null;
+    }
+
+    function handleClick(px, py) {
+        if (gameOver) return;
+
+        const gridPos = pixelToGrid(px, py);
+        if (!gridPos) return;
+
+        const key = posKey(gridPos.r, gridPos.c);
+        const phase = getPhase();
+
+        if (currentTurn === 'goat') {
+            if (phase === 1) {
+                // Placement phase: place a goat on empty intersection
+                if (!board[key]) {
+                    board[key] = 'goat';
+                    goatsPlaced++;
+                    selectedPiece = null;
+                    validMoves = [];
+                    switchTurn();
+                }
+            } else {
+                // Movement phase
+                if (selectedPiece) {
+                    // Try to move
+                    const move = validMoves.find(m => m.to === key);
+                    if (move) {
+                        board[key] = 'goat';
+                        board[selectedPiece] = null;
+                        selectedPiece = null;
+                        validMoves = [];
+                        switchTurn();
+                    } else if (board[key] === 'goat') {
+                        // Select different goat
+                        selectedPiece = key;
+                        validMoves = getValidMovesForGoat(key);
+                        drawBoard();
+                    } else {
+                        selectedPiece = null;
+                        validMoves = [];
+                        drawBoard();
+                    }
+                } else {
+                    if (board[key] === 'goat') {
+                        selectedPiece = key;
+                        validMoves = getValidMovesForGoat(key);
+                        drawBoard();
+                    }
+                }
+            }
+        } else {
+            // Tiger's turn
+            if (selectedPiece) {
+                const move = validMoves.find(m => m.to === key);
+                if (move) {
+                    board[key] = 'tiger';
+                    board[selectedPiece] = null;
+                    if (move.capture) {
+                        board[move.capture] = null;
+                        goatsCaptured++;
+                    }
+                    selectedPiece = null;
+                    validMoves = [];
+                    switchTurn();
+                } else if (board[key] === 'tiger') {
+                    selectedPiece = key;
+                    validMoves = getValidMovesForTiger(key);
+                    drawBoard();
+                } else {
+                    selectedPiece = null;
+                    validMoves = [];
+                    drawBoard();
+                }
+            } else {
+                if (board[key] === 'tiger') {
+                    selectedPiece = key;
+                    validMoves = getValidMovesForTiger(key);
+                    drawBoard();
+                }
+            }
+        }
+    }
+
+    function switchTurn() {
+        const winner = checkWinCondition();
+        if (winner) {
+            gameOver = true;
+            updateUI();
+            drawBoard();
+            showWinMessage(winner);
+            return;
+        }
+
+        currentTurn = currentTurn === 'goat' ? 'tiger' : 'goat';
+        updateUI();
+        drawBoard();
+    }
+
+    function showWinMessage(winner) {
+        const overlay = document.getElementById('message-overlay');
+        const title = document.getElementById('message-title');
+        const text = document.getElementById('message-text');
+
+        if (winner === 'tiger') {
+            title.textContent = '🐅 Tigers Win!';
+            text.textContent = 'The tigers captured 5 goats. The tigers rule the board!';
+        } else {
+            title.textContent = '🐐 Goats Win!';
+            text.textContent = 'All tigers are trapped! The goats have won the battle!';
+        }
+
+        overlay.classList.add('show');
+    }
+
+    function updateUI() {
+        const turnEl = document.getElementById('turn-indicator');
+        const phaseEl = document.getElementById('phase-indicator');
+
+        turnEl.textContent = currentTurn === 'goat' ? "Goat's Turn 🐐" : "Tiger's Turn 🐅";
+        turnEl.className = `turn-indicator ${currentTurn === 'goat' ? 'turn-goat' : 'turn-tiger'}`;
+
+        const phase = getPhase();
+        if (phase === 1) {
+            phaseEl.textContent = `Phase 1: Place Goats (${TOTAL_GOATS - goatsPlaced} left)`;
+        } else {
+            phaseEl.textContent = 'Phase 2: Move Pieces';
+        }
+
+        document.getElementById('goats-placed').textContent = `${goatsPlaced} / ${TOTAL_GOATS}`;
+        document.getElementById('goats-captured').textContent = goatsCaptured;
+        document.getElementById('tigers-trapped').textContent = countTrappedTigers();
+    }
+
+    function restartGame() {
+        initGame();
+    }
+
+    // ===== EVENT HANDLING =====
+
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const px = (e.clientX - rect.left) * scaleX;
+        const py = (e.clientY - rect.top) * scaleY;
+        handleClick(px, py);
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        initLayout();
+        drawBoard();
+    });
+
+    // ===== INIT =====
+    initLayout();
+    initGame();
+    </script>
+</body>
+</html>
