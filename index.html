@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bagh Chal - बाघ चाल</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -110,7 +111,7 @@
             border: 2px solid var(--panel-border);
             border-radius: 16px;
             padding: 24px 20px;
-            width: 200px;
+            width: 140px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
@@ -463,6 +464,38 @@
             50% { opacity: 1; }
         }
 
+        /* ===== REPLAY CONTROLS ===== */
+        .replay-bar {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255,165,0,0.1);
+            border: 1px solid rgba(255,165,0,0.25);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .replay-bar.show { display: flex; }
+        .replay-bar button {
+            padding: 6px 12px;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            background: var(--panel-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .replay-bar button:hover { background: rgba(255,255,255,0.12); }
+        .replay-bar button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .replay-bar .replay-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: center;
+        }
+
         @media (max-width: 940px) {
             .game-container { flex-direction: column; align-items: center; }
             .info-panel, .right-panel { width: 420px; max-width: 95vw; }
@@ -490,6 +523,14 @@
             <option value="traditional">Traditional</option>
             <option value="modern">Modern</option>
         </select>
+        <label>Board:</label>
+        <select id="skin-select" onchange="changeSkin(this.value)">
+            <option value="classic">Classic</option>
+            <option value="wood">Wood</option>
+            <option value="marble">Marble</option>
+            <option value="neon">Neon</option>
+            <option value="nepal">Nepal</option>
+        </select>
         <button class="sound-toggle" id="sound-btn" onclick="toggleSound()">Sound: ON</button>
     </div>
 
@@ -499,6 +540,7 @@
         <span>Tiger Wins: <span class="val" id="stat-tiger-wins">0</span></span>
         <span>Goat Wins: <span class="val" id="stat-goat-wins">0</span></span>
         <span>Streak: <span class="val" id="stat-streak">0</span></span>
+        <span>ELO: <span class="val" id="stat-elo">1000</span></span>
     </div>
 
     <!-- Start Menu -->
@@ -514,6 +556,11 @@
                 <div class="icon">🤖</div>
                 <div class="title">vs Computer</div>
                 <div class="desc">Challenge the AI opponent</div>
+            </div>
+            <div class="mode-card" onclick="selectMode('online')">
+                <div class="icon">🌐</div>
+                <div class="title">Online</div>
+                <div class="desc">Play with a friend via link</div>
             </div>
         </div>
 
@@ -531,6 +578,25 @@
             <div class="side-buttons">
                 <button class="side-btn" onclick="startAIGame('goat')">🐐 Goats</button>
                 <button class="side-btn" onclick="startAIGame('tiger')">🐅 Tigers</button>
+            </div>
+        </div>
+
+        <div class="online-lobby" id="online-lobby" style="display:none; flex-direction:column; align-items:center; gap:14px; width:100%;">
+            <h4 style="color:var(--text-secondary);">Online Multiplayer</h4>
+            <div class="diff-buttons">
+                <button class="diff-btn" onclick="createOnlineGame()">Create Game</button>
+                <button class="diff-btn" onclick="showJoinInput()">Join Game</button>
+            </div>
+            <div id="online-create-info" style="display:none; text-align:center;">
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">Share this code with your friend:</p>
+                <div style="font-size:1.8rem; font-weight:bold; color:var(--gold); letter-spacing:4px; cursor:pointer;" id="room-code" onclick="copyRoomCode()" title="Click to copy"></div>
+                <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:6px;" id="online-status">Waiting for opponent...</p>
+            </div>
+            <div id="online-join-info" style="display:none; text-align:center;">
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">Enter the game code:</p>
+                <input type="text" id="join-code-input" maxlength="6" style="padding:10px 16px; font-size:1.3rem; text-align:center; letter-spacing:4px; text-transform:uppercase; border-radius:10px; border:2px solid var(--panel-border); background:var(--panel-bg); color:var(--text-primary); width:180px;" placeholder="CODE">
+                <br><button class="diff-btn" style="margin-top:10px;" onclick="joinOnlineGame()">Connect</button>
+                <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:6px;" id="join-status"></p>
             </div>
         </div>
     </div>
@@ -564,8 +630,17 @@
             <button class="btn btn-menu" onclick="backToMenu()">Main Menu</button>
         </div>
 
-        <div id="board-container">
-            <canvas id="board-canvas"></canvas>
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <div class="replay-bar" id="replay-bar">
+                <button onclick="replayStep(-1)" id="replay-prev">&#9664; Prev</button>
+                <button onclick="replayTogglePlay()" id="replay-play">&#9654; Play</button>
+                <button onclick="replayStep(1)" id="replay-next">Next &#9654;</button>
+                <span class="replay-info" id="replay-info">0 / 0</span>
+                <button onclick="exitReplay()">&#10005; Exit</button>
+            </div>
+            <div id="board-container">
+                <canvas id="board-canvas"></canvas>
+            </div>
         </div>
 
         <div class="right-panel">
@@ -593,6 +668,7 @@
             <h2 id="message-title">Game Over</h2>
             <p id="message-text">Someone wins!</p>
             <button class="btn btn-restart" onclick="restartGame()">Play Again</button>
+            <button class="btn btn-menu" onclick="startReplay()" style="background:rgba(255,165,0,0.2); border-color:rgba(255,165,0,0.4); color:#ffb347;">Replay</button>
             <button class="btn btn-menu" onclick="backToMenu()" style="background:rgba(255,255,255,0.1);">Menu</button>
         </div>
     </div>
@@ -673,6 +749,8 @@
     function soundPlace() { playTone(600, 0.12, 'sine', 0.12); }
     function soundMove() { playTone(440, 0.1, 'triangle', 0.1); }
     function soundCapture() { playTone(220, 0.25, 'sawtooth', 0.1); setTimeout(() => playTone(180, 0.2, 'sawtooth', 0.08), 100); }
+    function effectCapture(key) { spawnCaptureParticles(key); triggerShake(); startEffectsLoop(); }
+    function effectWin() { spawnConfetti(); startEffectsLoop(); }
     function soundSelect() { playTone(800, 0.06, 'sine', 0.08); }
     function soundWin() { [0, 150, 300, 450].forEach((d, i) => setTimeout(() => playTone(400 + i * 100, 0.3, 'sine', 0.12), d)); }
     function soundUndo() { playTone(300, 0.1, 'triangle', 0.08); }
@@ -682,15 +760,64 @@
         document.getElementById('sound-btn').textContent = `Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
     }
 
-    // ===== THEME =====
+    // ===== THEME & BOARD SKINS =====
+    let currentSkin = 'classic';
+
+    const SKIN_CONFIG = {
+        classic: {
+            boardBg: null,  // use CSS variable
+            lineColor: null,
+            lineWidth: 1.5,
+            dotColor: 'rgba(255,255,255,0.25)',
+            pieceStyle: 'gradient' // gradient, flat, or emoji-only
+        },
+        wood: {
+            boardBg: '#8B6914',
+            boardBg2: '#6B4E12',
+            lineColor: 'rgba(40,25,10,0.6)',
+            lineWidth: 2,
+            dotColor: 'rgba(40,25,10,0.4)',
+            pieceStyle: 'gradient'
+        },
+        marble: {
+            boardBg: '#d0cfc8',
+            boardBg2: '#b8b5aa',
+            lineColor: 'rgba(80,80,80,0.4)',
+            lineWidth: 1.5,
+            dotColor: 'rgba(80,80,80,0.35)',
+            pieceStyle: 'flat'
+        },
+        neon: {
+            boardBg: '#0a0a1a',
+            boardBg2: '#0a0a1a',
+            lineColor: 'rgba(0,255,200,0.6)',
+            lineWidth: 2,
+            dotColor: 'rgba(0,255,200,0.4)',
+            pieceStyle: 'gradient'
+        },
+        nepal: {
+            boardBg: '#8B0000',
+            boardBg2: '#6B0000',
+            lineColor: 'rgba(255,220,150,0.5)',
+            lineWidth: 2.5,
+            dotColor: 'rgba(255,220,150,0.4)',
+            pieceStyle: 'gradient'
+        }
+    };
+
     function changeTheme(theme) {
         document.body.removeAttribute('data-theme');
         if (theme !== 'dark') document.body.setAttribute('data-theme', theme);
         drawBoard();
     }
 
+    function changeSkin(skin) {
+        currentSkin = skin;
+        drawBoard();
+    }
+
     // ===== STATISTICS (localStorage) =====
-    let stats = { played: 0, tigerWins: 0, goatWins: 0, streak: 0, lastWinner: null };
+    let stats = { played: 0, tigerWins: 0, goatWins: 0, streak: 0, lastWinner: null, elo: 1000 };
 
     function loadStats() {
         try {
@@ -710,6 +837,17 @@
         document.getElementById('stat-tiger-wins').textContent = stats.tigerWins;
         document.getElementById('stat-goat-wins').textContent = stats.goatWins;
         document.getElementById('stat-streak').textContent = stats.streak;
+        document.getElementById('stat-elo').textContent = stats.elo || 1000;
+    }
+
+    // ELO calculation
+    const AI_ELO = { easy: 600, medium: 1100, hard: 1500 };
+
+    function calcEloChange(playerElo, opponentElo, won) {
+        const K = stats.played < 10 ? 40 : 20; // higher K for new players
+        const expected = 1 / (1 + Math.pow(10, (opponentElo - playerElo) / 400));
+        const actual = won ? 1 : 0;
+        return Math.round(K * (actual - expected));
     }
 
     function recordWin(winner) {
@@ -719,6 +857,15 @@
         if (stats.lastWinner === winner) stats.streak++;
         else stats.streak = 1;
         stats.lastWinner = winner;
+
+        // ELO update (only for AI games)
+        if (gameMode === 'ai') {
+            const playerWon = (winner === playerSide);
+            const aiElo = AI_ELO[aiDifficulty] || 1100;
+            const change = calcEloChange(stats.elo, aiElo, playerWon);
+            stats.elo = Math.max(100, stats.elo + change);
+        }
+
         saveStats();
     }
 
@@ -762,15 +909,131 @@
         return { x: padding + c * cellSize, y: padding + r * cellSize };
     }
 
+    // Detect touch device for larger hit targets
+    const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    const HIT_RADIUS_FACTOR = isTouchDevice ? 0.45 : 0.35;
+
     function pixelToGrid(px, py) {
+        let closest = null, closestDist = Infinity;
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const { x, y } = gridToPixel(r, c);
-                if (Math.sqrt((px - x) ** 2 + (py - y) ** 2) < cellSize * 0.35)
-                    return { r, c };
+                const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
+                if (dist < cellSize * HIT_RADIUS_FACTOR && dist < closestDist) {
+                    closest = { r, c };
+                    closestDist = dist;
+                }
             }
         }
-        return null;
+        return closest;
+    }
+
+    // ===== PARTICLE & EFFECTS SYSTEM =====
+    let particles = [];
+    let shakeAmount = 0;
+    let confettiParticles = [];
+
+    function spawnCaptureParticles(key) {
+        const { r, c } = parseKey(key);
+        const { x, y } = gridToPixel(r, c);
+        for (let i = 0; i < 12; i++) {
+            const angle = (Math.PI * 2 / 12) * i + Math.random() * 0.5;
+            const speed = 2 + Math.random() * 3;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1,
+                decay: 0.02 + Math.random() * 0.02,
+                size: 3 + Math.random() * 4,
+                color: `hsl(${10 + Math.random() * 30}, 90%, ${50 + Math.random() * 30}%)`
+            });
+        }
+    }
+
+    function spawnConfetti() {
+        for (let i = 0; i < 80; i++) {
+            confettiParticles.push({
+                x: Math.random() * canvas.width,
+                y: -10 - Math.random() * 40,
+                vx: (Math.random() - 0.5) * 3,
+                vy: 1.5 + Math.random() * 3,
+                life: 1,
+                decay: 0.005 + Math.random() * 0.005,
+                size: 4 + Math.random() * 6,
+                color: ['#e94560','#4CAF50','#ffd700','#58A6FF','#FF8F00','#fff'][Math.floor(Math.random() * 6)],
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.2
+            });
+        }
+    }
+
+    function triggerShake() {
+        shakeAmount = 8;
+    }
+
+    function updateParticles() {
+        // Update capture particles
+        particles = particles.filter(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1; // gravity
+            p.life -= p.decay;
+            return p.life > 0;
+        });
+
+        // Update confetti
+        confettiParticles = confettiParticles.filter(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.99;
+            p.rotation += p.rotSpeed;
+            p.life -= p.decay;
+            return p.life > 0 && p.y < canvas.height + 20;
+        });
+
+        // Decay shake
+        if (shakeAmount > 0) shakeAmount *= 0.85;
+        if (shakeAmount < 0.5) shakeAmount = 0;
+    }
+
+    function drawParticles() {
+        // Draw capture particles
+        for (const p of particles) {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw confetti
+        for (const p of confettiParticles) {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    let effectsRunning = false;
+    function startEffectsLoop() {
+        if (effectsRunning) return;
+        effectsRunning = true;
+        function effectFrame() {
+            if (particles.length === 0 && confettiParticles.length === 0 && shakeAmount === 0) {
+                effectsRunning = false;
+                return;
+            }
+            updateParticles();
+            drawBoard();
+            requestAnimationFrame(effectFrame);
+        }
+        requestAnimationFrame(effectFrame);
     }
 
     // ===== DRAWING =====
@@ -778,15 +1041,42 @@
         const w = canvas.width, h = canvas.height;
         ctx.clearRect(0, 0, w, h);
 
-        // Board background
-        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+        // Apply shake offset
+        if (shakeAmount > 0) {
+            ctx.save();
+            ctx.translate(
+                (Math.random() - 0.5) * shakeAmount,
+                (Math.random() - 0.5) * shakeAmount
+            );
+        }
+
+        // Board background with skin
+        const skin = SKIN_CONFIG[currentSkin] || SKIN_CONFIG.classic;
+        if (skin.boardBg) {
+            if (skin.boardBg2) {
+                const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+                bgGrad.addColorStop(0, skin.boardBg);
+                bgGrad.addColorStop(1, skin.boardBg2);
+                ctx.fillStyle = bgGrad;
+            } else {
+                ctx.fillStyle = skin.boardBg;
+            }
+        } else {
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+        }
         ctx.beginPath();
         ctx.roundRect(0, 0, w, h, 16);
         ctx.fill();
 
-        const lineColor = getComputedStyle(document.body).getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
+        // Neon glow effect for neon skin
+        if (currentSkin === 'neon') {
+            ctx.shadowColor = 'rgba(0,255,200,0.3)';
+            ctx.shadowBlur = 8;
+        }
+
+        const lineColor = skin.lineColor || getComputedStyle(document.body).getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
         ctx.strokeStyle = lineColor;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = skin.lineWidth || 1.5;
 
         // Grid lines
         for (let r = 0; r < BOARD_SIZE; r++) {
@@ -825,6 +1115,10 @@
             ctx.stroke();
         }
 
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+
         // Intersection dots for empty spots
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
@@ -833,7 +1127,7 @@
                     const { x, y } = gridToPixel(r, c);
                     ctx.beginPath();
                     ctx.arc(x, y, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+                    ctx.fillStyle = skin.dotColor || 'rgba(255,255,255,0.25)';
                     ctx.fill();
                 }
             }
@@ -858,9 +1152,16 @@
             const cy = animPiece.fromY + (animPiece.toY - animPiece.fromY) * t;
             drawPiece(cx, cy, animPiece.type, false);
         }
+
+        // Restore shake context
+        if (shakeAmount > 0) ctx.restore();
+
+        // Draw particles and confetti on top
+        drawParticles();
     }
 
     function drawPiece(x, y, type, isSelected) {
+        const skin = SKIN_CONFIG[currentSkin] || SKIN_CONFIG.classic;
         const radius = isSelected ? 20 : 18;
 
         // Shadow
@@ -869,24 +1170,37 @@
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
         ctx.fill();
 
-        // Main gradient
-        const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, radius);
-        if (type === 'tiger') {
-            grad.addColorStop(0, '#ff8a65');
-            grad.addColorStop(1, '#c0392b');
+        // Main circle — gradient or flat based on skin
+        if (skin.pieceStyle === 'flat') {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = type === 'tiger' ? '#c0392b' : '#2e7d32';
+            ctx.fill();
         } else {
-            grad.addColorStop(0, '#a5d6a7');
-            grad.addColorStop(1, '#2e7d32');
+            const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, radius);
+            if (type === 'tiger') {
+                grad.addColorStop(0, currentSkin === 'neon' ? '#ff4444' : '#ff8a65');
+                grad.addColorStop(1, currentSkin === 'neon' ? '#aa0000' : '#c0392b');
+            } else {
+                grad.addColorStop(0, currentSkin === 'neon' ? '#44ff88' : '#a5d6a7');
+                grad.addColorStop(1, currentSkin === 'neon' ? '#008833' : '#2e7d32');
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
         }
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
 
         // Border
+        if (currentSkin === 'neon') {
+            ctx.shadowColor = type === 'tiger' ? '#ff0000' : '#00ff66';
+            ctx.shadowBlur = isSelected ? 15 : 8;
+        }
         ctx.strokeStyle = isSelected ? '#ffd700' : (type === 'tiger' ? '#e74c3c' : '#4CAF50');
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.stroke();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
 
         // Selection glow
         if (isSelected) {
@@ -980,9 +1294,14 @@
         moveDescriptions = [];
         moveCount = 0;
         aiThinking = false;
+        replaySnapshots = [];
+        replayActive = false;
+        if (replayInterval) { clearInterval(replayInterval); replayInterval = null; }
+        document.getElementById('replay-bar').classList.remove('show');
 
         updateUI();
         drawBoard();
+        recordSnapshot(); // record initial board state
         document.getElementById('message-overlay').classList.remove('show');
         document.getElementById('ai-thinking').classList.remove('show');
         updateUndoBtn();
@@ -1093,7 +1412,7 @@
 
     function updateUndoBtn() {
         const btn = document.getElementById('undo-btn');
-        btn.disabled = moveHistory.length === 0 || gameOver || aiThinking;
+        btn.disabled = moveHistory.length === 0 || gameOver || aiThinking || gameMode === 'online';
     }
 
     function updateMoveList() {
@@ -1115,8 +1434,9 @@
 
     // ===== CLICK HANDLER =====
     function handleClick(px, py) {
-        if (gameOver || aiThinking || animating) return;
+        if (gameOver || aiThinking || animating || replayActive) return;
         if (gameMode === 'ai' && currentTurn !== playerSide) return;
+        if (gameMode === 'online' && currentTurn !== playerSide) return;
 
         const gridPos = pixelToGrid(px, py);
         if (!gridPos) return;
@@ -1140,6 +1460,7 @@
                 selectedPiece = null;
                 validMoves = [];
                 soundPlace();
+                if (gameMode === 'online') sendMoveToRemote({ placement: true, to: key, pieceType: 'goat' });
                 switchTurn();
             }
         } else {
@@ -1155,6 +1476,7 @@
 
                     board[key] = 'goat';
                     board[fromKey] = null;
+                    if (gameMode === 'online') sendMoveToRemote({ from: fromKey, to: key, pieceType: 'goat', capture: null });
                     animateMove(fromKey, key, 'goat', null, () => {
                         soundMove();
                         switchTurn();
@@ -1197,9 +1519,10 @@
                 board[key] = 'tiger';
                 board[fromKey] = null;
                 if (captureKey) { board[captureKey] = null; goatsCaptured++; }
+                if (gameMode === 'online') sendMoveToRemote({ from: fromKey, to: key, pieceType: 'tiger', capture: captureKey });
 
                 animateMove(fromKey, key, 'tiger', captureKey, () => {
-                    if (captureKey) soundCapture(); else soundMove();
+                    if (captureKey) { soundCapture(); effectCapture(captureKey); } else soundMove();
                     switchTurn();
                 });
                 return;
@@ -1222,6 +1545,7 @@
     }
 
     function switchTurn() {
+        recordSnapshot(); // record state after move for replay
         const winner = checkWinCondition();
         if (winner) {
             gameOver = true;
@@ -1253,6 +1577,7 @@
             text.textContent = 'All tigers are trapped!';
         }
         overlay.classList.add('show');
+        effectWin(); // confetti!
     }
 
     function updateUI() {
@@ -1278,10 +1603,52 @@
         updateUndoBtn();
     }
 
-    // ===== AI ENGINE (Minimax + Alpha-Beta Pruning) =====
-    const DEPTH_MAP = { easy: 1, medium: 3, hard: 5 };
+    // ===== AI ENGINE (Minimax + Alpha-Beta + Opening Book + Enhanced Eval) =====
+    const DEPTH_MAP = { easy: 2, medium: 4, hard: 6 };
 
     function cloneBoard(b) { return { ...b }; }
+
+    // Opening book: known strong early placements for goats (blocking tiger movement)
+    const GOAT_OPENING_BOOK = [
+        ['2,1','1,2','2,3','3,2','2,2'], // control center and cross
+        ['2,0','0,2','2,4','4,2','2,2'], // control edges then center
+        ['1,1','1,3','3,1','3,3','2,2'], // inner ring then center
+    ];
+
+    // Tiger opening: prioritize moving toward center early
+    const TIGER_OPENING_PRIORITIES = ['2,2','2,1','1,2','2,3','3,2','1,1','1,3','3,1','3,3'];
+
+    function getOpeningMove(isAITiger) {
+        if (moveCount > 8) return null; // only use book for early game
+
+        if (!isAITiger && goatsPlaced < 5) {
+            // AI plays goat: use opening book
+            const bookLine = GOAT_OPENING_BOOK[Math.floor(Math.random() * GOAT_OPENING_BOOK.length)];
+            for (const pos of bookLine) {
+                if (!board[pos]) {
+                    return { from: null, to: pos, capture: null, placement: true };
+                }
+            }
+        }
+
+        if (isAITiger && moveCount < 6) {
+            // AI plays tiger: move toward high-priority positions
+            const tigers = [];
+            for (let r = 0; r < BOARD_SIZE; r++)
+                for (let c = 0; c < BOARD_SIZE; c++)
+                    if (board[posKey(r, c)] === 'tiger') tigers.push(posKey(r, c));
+
+            for (const target of TIGER_OPENING_PRIORITIES) {
+                if (board[target]) continue;
+                for (const tKey of tigers) {
+                    const moves = getValidMovesForTiger(tKey);
+                    const move = moves.find(m => m.to === target);
+                    if (move) return { from: tKey, ...move };
+                }
+            }
+        }
+        return null;
+    }
 
     function getAllTigerMoves(b) {
         const moves = [];
@@ -1299,14 +1666,12 @@
     function getAllGoatMoves(b, gp) {
         const moves = [];
         if (gp < TOTAL_GOATS) {
-            // Placement phase
             for (let r = 0; r < BOARD_SIZE; r++)
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const key = posKey(r, c);
                     if (!b[key]) moves.push({ from: null, to: key, capture: null, placement: true });
                 }
         } else {
-            // Movement phase
             for (let r = 0; r < BOARD_SIZE; r++)
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const key = posKey(r, c);
@@ -1319,64 +1684,137 @@
         return moves;
     }
 
+    // Move ordering: evaluate captures first for better pruning
+    function orderMoves(moves, isTiger) {
+        return moves.sort((a, b) => {
+            const aScore = a.capture ? 100 : 0;
+            const bScore = b.capture ? 100 : 0;
+            return bScore - aScore;
+        });
+    }
+
     function evaluateBoard(b, gc, gp) {
-        // Positive score favors tigers, negative favors goats
         let score = 0;
 
-        // Captured goats are very valuable for tigers
-        score += gc * 50;
+        // Captured goats (very high weight)
+        score += gc * 60;
 
-        // Trapped tigers are very valuable for goats
-        const trappedTigers = countTrappedTigers(b);
-        score -= trappedTigers * 60;
-
-        // Tiger mobility
+        // Trapped tigers (very high weight for goats)
+        let trappedTigers = 0;
+        let semiTrappedTigers = 0; // only 1 move available
         let tigerMobility = 0;
         let tigerCaptures = 0;
+        let tigerPositionScore = 0;
+
         for (let r = 0; r < BOARD_SIZE; r++)
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const key = posKey(r, c);
                 if (b[key] === 'tiger') {
                     const moves = getValidMovesForTiger(key, b);
-                    tigerMobility += moves.length;
-                    tigerCaptures += moves.filter(m => m.capture).length;
+                    const moveCount = moves.length;
+                    const captureCount = moves.filter(m => m.capture).length;
+
+                    if (moveCount === 0) trappedTigers++;
+                    else if (moveCount === 1) semiTrappedTigers++;
+
+                    tigerMobility += moveCount;
+                    tigerCaptures += captureCount;
+
+                    // Position: center is best, edges are worst
+                    const distFromCenter = Math.abs(r - 2) + Math.abs(c - 2);
+                    tigerPositionScore += (4 - distFromCenter) * 2;
                 }
             }
-        score += tigerMobility * 3;
-        score += tigerCaptures * 15;
 
-        // Goat clustering (goats near center and each other are better for trapping)
-        if (gp >= 10) {
-            let goatConnections = 0;
-            for (let r = 0; r < BOARD_SIZE; r++)
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    const key = posKey(r, c);
-                    if (b[key] === 'goat') {
-                        for (const adj of getAdjacentPositions(key)) {
-                            if (b[adj] === 'goat') goatConnections++;
-                        }
+        score -= trappedTigers * 80;
+        score -= semiTrappedTigers * 20;
+        score += tigerMobility * 4;
+        score += tigerCaptures * 20;
+        score += tigerPositionScore;
+
+        // Goat evaluation
+        let goatCount = 0;
+        let goatConnections = 0;
+        let edgeGoats = 0;
+        let goatDefenseScore = 0;
+
+        for (let r = 0; r < BOARD_SIZE; r++)
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const key = posKey(r, c);
+                if (b[key] === 'goat') {
+                    goatCount++;
+
+                    // Goats on the edge are vulnerable to capture
+                    if (r === 0 || r === 4 || c === 0 || c === 4) edgeGoats++;
+
+                    // Connected goats form defensive walls
+                    for (const adj of getAdjacentPositions(key)) {
+                        if (b[adj] === 'goat') goatConnections++;
+                    }
+
+                    // Goats adjacent to tigers help block them
+                    for (const adj of getAdjacentPositions(key)) {
+                        if (b[adj] === 'tiger') goatDefenseScore += 3;
                     }
                 }
-            score -= goatConnections * 2;
+            }
+
+        // Goat clustering helps trapping (negative = good for goats)
+        if (gp >= 8) {
+            score -= goatConnections * 3;
+            score -= goatDefenseScore;
         }
+        score += edgeGoats * 2; // edge goats are slightly bad for goat player
 
         // Center control
         const center = posKey(2, 2);
-        if (b[center] === 'tiger') score += 8;
-        else if (b[center] === 'goat') score -= 5;
+        if (b[center] === 'tiger') score += 10;
+        else if (b[center] === 'goat') score -= 8;
+
+        // Cross points control (adjacent to center)
+        const crossPoints = ['1,2','3,2','2,1','2,3'];
+        for (const cp of crossPoints) {
+            if (b[cp] === 'tiger') score += 3;
+            else if (b[cp] === 'goat') score -= 2;
+        }
+
+        // Threat: if a tiger can capture on next move, it's dangerous
+        if (tigerCaptures > 0) score += tigerCaptures * 8;
 
         return score;
     }
 
+    // Transposition table for caching evaluated positions
+    const transTable = new Map();
+    const MAX_TRANS_SIZE = 50000;
+
+    function boardHash(b, gp, gc, isTigerTurn) {
+        let h = isTigerTurn ? 'T' : 'G';
+        h += gp + ',' + gc + ':';
+        for (let r = 0; r < BOARD_SIZE; r++)
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const v = b[posKey(r, c)];
+                h += v ? (v === 'tiger' ? 't' : 'g') : '.';
+            }
+        return h;
+    }
+
     function minimax(b, gp, gc, depth, alpha, beta, isTigerTurn) {
-        // Terminal check
         if (gc >= GOATS_TO_WIN) return 10000 + depth;
         if (countTrappedTigers(b) === 4) return -10000 - depth;
         if (depth === 0) return evaluateBoard(b, gc, gp);
 
+        // Check transposition table
+        const hash = boardHash(b, gp, gc, isTigerTurn);
+        const cached = transTable.get(hash);
+        if (cached && cached.depth >= depth) return cached.score;
+
+        let result;
+
         if (isTigerTurn) {
-            const moves = getAllTigerMoves(b);
+            let moves = getAllTigerMoves(b);
             if (moves.length === 0) return -10000 - depth;
+            moves = orderMoves(moves, true);
             let maxEval = -Infinity;
             for (const move of moves) {
                 const nb = cloneBoard(b);
@@ -1389,75 +1827,78 @@
                 alpha = Math.max(alpha, ev);
                 if (beta <= alpha) break;
             }
-            return maxEval;
+            result = maxEval;
         } else {
-            const moves = getAllGoatMoves(b, gp);
+            let moves = getAllGoatMoves(b, gp);
             if (moves.length === 0) return evaluateBoard(b, gc, gp);
             let minEval = Infinity;
             for (const move of moves) {
                 const nb = cloneBoard(b);
                 let newGp = gp;
-                if (move.placement) {
-                    nb[move.to] = 'goat';
-                    newGp++;
-                } else {
-                    nb[move.from] = null;
-                    nb[move.to] = 'goat';
-                }
+                if (move.placement) { nb[move.to] = 'goat'; newGp++; }
+                else { nb[move.from] = null; nb[move.to] = 'goat'; }
                 const ev = minimax(nb, newGp, gc, depth - 1, alpha, beta, true);
                 minEval = Math.min(minEval, ev);
                 beta = Math.min(beta, ev);
                 if (beta <= alpha) break;
             }
-            return minEval;
+            result = minEval;
         }
+
+        // Store in transposition table
+        if (transTable.size > MAX_TRANS_SIZE) transTable.clear();
+        transTable.set(hash, { score: result, depth });
+
+        return result;
     }
 
     function getBestAIMove() {
-        const depth = DEPTH_MAP[aiDifficulty] || 3;
         const isAITiger = (playerSide === 'goat');
+
+        // Try opening book first
+        if (aiDifficulty !== 'easy') {
+            const bookMove = getOpeningMove(isAITiger);
+            if (bookMove) return bookMove;
+        }
+
+        const depth = DEPTH_MAP[aiDifficulty] || 4;
         let bestMove = null;
         let bestScore = isAITiger ? -Infinity : Infinity;
 
         const moves = isAITiger
-            ? getAllTigerMoves(board)
+            ? orderMoves(getAllTigerMoves(board), true)
             : getAllGoatMoves(board, goatsPlaced);
 
-        // Add randomness for easy difficulty
+        // Easy: 30% random moves
         if (aiDifficulty === 'easy' && Math.random() < 0.3 && moves.length > 0) {
             return moves[Math.floor(Math.random() * moves.length)];
         }
 
+        // Clear transposition table each turn for freshness
+        transTable.clear();
+
         for (const move of moves) {
             const nb = cloneBoard(board);
-            let newGp = goatsPlaced;
-            let newGc = goatsCaptured;
+            let newGp = goatsPlaced, newGc = goatsCaptured;
 
             if (isAITiger) {
                 nb[move.from] = null;
                 nb[move.to] = 'tiger';
                 if (move.capture) { nb[move.capture] = null; newGc++; }
             } else {
-                if (move.placement) {
-                    nb[move.to] = 'goat';
-                    newGp++;
-                } else {
-                    nb[move.from] = null;
-                    nb[move.to] = 'goat';
-                }
+                if (move.placement) { nb[move.to] = 'goat'; newGp++; }
+                else { nb[move.from] = null; nb[move.to] = 'goat'; }
             }
 
             const score = minimax(nb, newGp, newGc, depth - 1, -Infinity, Infinity, !isAITiger);
 
             if (isAITiger) {
                 if (score > bestScore || (score === bestScore && Math.random() < 0.3)) {
-                    bestScore = score;
-                    bestMove = move;
+                    bestScore = score; bestMove = move;
                 }
             } else {
                 if (score < bestScore || (score === bestScore && Math.random() < 0.3)) {
-                    bestScore = score;
-                    bestMove = move;
+                    bestScore = score; bestMove = move;
                 }
             }
         }
@@ -1492,7 +1933,7 @@
                 if (move.capture) { board[move.capture] = null; goatsCaptured++; }
 
                 animateMove(move.from, move.to, 'tiger', move.capture, () => {
-                    if (move.capture) soundCapture(); else soundMove();
+                    if (move.capture) { soundCapture(); effectCapture(move.capture); } else soundMove();
                     switchTurn();
                 });
             } else {
@@ -1519,6 +1960,160 @@
         }, 300 + Math.random() * 400); // slight delay to feel natural
     }
 
+    // ===== ONLINE MULTIPLAYER (PeerJS WebRTC) =====
+    let peer = null;
+    let peerConn = null;
+    let onlineRole = null; // 'goat' or 'tiger'
+    let roomCode = '';
+
+    function generateRoomCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+        return code;
+    }
+
+    function createOnlineGame() {
+        roomCode = generateRoomCode();
+        const peerId = 'baghchal-' + roomCode;
+
+        document.getElementById('online-create-info').style.display = 'block';
+        document.getElementById('online-join-info').style.display = 'none';
+        document.getElementById('room-code').textContent = roomCode;
+        document.getElementById('online-status').textContent = 'Connecting...';
+
+        try {
+            peer = new Peer(peerId);
+        } catch (e) {
+            document.getElementById('online-status').textContent = 'Failed to create peer. Try again.';
+            return;
+        }
+
+        peer.on('open', () => {
+            document.getElementById('online-status').textContent = 'Waiting for opponent to join...';
+        });
+
+        peer.on('connection', (conn) => {
+            peerConn = conn;
+            onlineRole = 'goat'; // creator plays goat (goes first)
+            setupPeerConnection();
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('online-status').textContent = 'Error: ' + err.type + '. Try creating a new game.';
+        });
+    }
+
+    function showJoinInput() {
+        document.getElementById('online-join-info').style.display = 'block';
+        document.getElementById('online-create-info').style.display = 'none';
+        document.getElementById('join-code-input').focus();
+    }
+
+    function joinOnlineGame() {
+        const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+        if (code.length < 4) {
+            document.getElementById('join-status').textContent = 'Enter a valid code';
+            return;
+        }
+
+        const peerId = 'baghchal-' + code;
+        document.getElementById('join-status').textContent = 'Connecting...';
+
+        try {
+            peer = new Peer();
+        } catch (e) {
+            document.getElementById('join-status').textContent = 'Failed to connect. Try again.';
+            return;
+        }
+
+        peer.on('open', () => {
+            peerConn = peer.connect(peerId);
+            onlineRole = 'tiger'; // joiner plays tiger
+            setupPeerConnection();
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('join-status').textContent = 'Could not find game. Check the code.';
+        });
+    }
+
+    function setupPeerConnection() {
+        peerConn.on('open', () => {
+            gameMode = 'online';
+            playerSide = onlineRole;
+
+            document.getElementById('start-menu').style.display = 'none';
+            document.getElementById('game-container').classList.add('show');
+            initLayout();
+            initGame();
+
+            // Send role confirmation
+            peerConn.send({ type: 'start', role: onlineRole });
+        });
+
+        peerConn.on('data', (data) => {
+            if (data.type === 'start') {
+                // Game already started
+            } else if (data.type === 'move') {
+                applyRemoteMove(data.move);
+            }
+        });
+
+        peerConn.on('close', () => {
+            if (!gameOver) {
+                showWinMessage(playerSide); // opponent disconnected, you win
+                gameOver = true;
+            }
+        });
+    }
+
+    function sendMoveToRemote(moveData) {
+        if (peerConn && peerConn.open) {
+            peerConn.send({ type: 'move', move: moveData });
+        }
+    }
+
+    function applyRemoteMove(moveData) {
+        if (gameOver) return;
+
+        if (moveData.placement) {
+            saveState(`Goat placed at ${posLabel(moveData.to)}`);
+            board[moveData.to] = 'goat';
+            goatsPlaced++;
+            soundPlace();
+            switchTurn();
+        } else {
+            const desc = moveData.capture
+                ? `${moveData.pieceType === 'tiger' ? 'Tiger' : 'Goat'} ${posLabel(moveData.from)} → ${posLabel(moveData.to)} (captured)`
+                : `${moveData.pieceType === 'tiger' ? 'Tiger' : 'Goat'} ${posLabel(moveData.from)} → ${posLabel(moveData.to)}`;
+            saveState(desc);
+
+            board[moveData.to] = moveData.pieceType;
+            board[moveData.from] = null;
+            if (moveData.capture) { board[moveData.capture] = null; goatsCaptured++; }
+
+            animateMove(moveData.from, moveData.to, moveData.pieceType, moveData.capture, () => {
+                if (moveData.capture) { soundCapture(); effectCapture(moveData.capture); } else soundMove();
+                switchTurn();
+            });
+        }
+    }
+
+    function copyRoomCode() {
+        navigator.clipboard.writeText(roomCode).catch(() => {});
+        const el = document.getElementById('online-status');
+        const prev = el.textContent;
+        el.textContent = 'Code copied!';
+        setTimeout(() => { el.textContent = prev; }, 1500);
+    }
+
+    function cleanupPeer() {
+        if (peerConn) { try { peerConn.close(); } catch (e) {} peerConn = null; }
+        if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
+        onlineRole = null;
+    }
+
     // ===== MENU / MODE SELECTION =====
     function selectMode(mode) {
         if (mode === 'human') {
@@ -1527,8 +2122,13 @@
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
+        } else if (mode === 'online') {
+            document.getElementById('online-lobby').style.display = 'flex';
+            document.getElementById('difficulty-select').classList.remove('show');
+            document.getElementById('side-select').classList.remove('show');
         } else {
             gameMode = 'ai';
+            document.getElementById('online-lobby').style.display = 'none';
             document.getElementById('difficulty-select').classList.add('show');
         }
     }
@@ -1557,18 +2157,153 @@
         document.getElementById('start-menu').style.display = 'flex';
         document.getElementById('difficulty-select').classList.remove('show');
         document.getElementById('side-select').classList.remove('show');
+        document.getElementById('online-lobby').style.display = 'none';
+        document.getElementById('online-create-info').style.display = 'none';
+        document.getElementById('online-join-info').style.display = 'none';
+        cleanupPeer();
+    }
+
+    // ===== GAME REPLAY SYSTEM =====
+    let replaySnapshots = [];   // array of board snapshots from game
+    let replayIndex = 0;
+    let replayActive = false;
+    let replayInterval = null;
+
+    // Called on each move to record snapshot
+    function recordSnapshot() {
+        replaySnapshots.push({
+            board: { ...board },
+            goatsPlaced,
+            goatsCaptured,
+            currentTurn
+        });
+    }
+
+    function startReplay() {
+        if (replaySnapshots.length === 0) return;
+        document.getElementById('message-overlay').classList.remove('show');
+        replayActive = true;
+        replayIndex = 0;
+        showReplayFrame();
+        document.getElementById('replay-bar').classList.add('show');
+        updateReplayUI();
+    }
+
+    function exitReplay() {
+        replayActive = false;
+        if (replayInterval) { clearInterval(replayInterval); replayInterval = null; }
+        document.getElementById('replay-bar').classList.remove('show');
+        // Restore final game state
+        const last = replaySnapshots[replaySnapshots.length - 1];
+        if (last) {
+            board = { ...last.board };
+            goatsPlaced = last.goatsPlaced;
+            goatsCaptured = last.goatsCaptured;
+            currentTurn = last.currentTurn;
+        }
+        drawBoard();
+        updateUI();
+        if (gameOver) {
+            document.getElementById('message-overlay').classList.add('show');
+        }
+    }
+
+    function showReplayFrame() {
+        const snap = replaySnapshots[replayIndex];
+        if (!snap) return;
+        board = { ...snap.board };
+        goatsPlaced = snap.goatsPlaced;
+        goatsCaptured = snap.goatsCaptured;
+        currentTurn = snap.currentTurn;
+        selectedPiece = null;
+        validMoves = [];
+        drawBoard();
+        updateUI();
+        updateReplayUI();
+    }
+
+    function replayStep(dir) {
+        const newIdx = replayIndex + dir;
+        if (newIdx < 0 || newIdx >= replaySnapshots.length) return;
+        replayIndex = newIdx;
+        showReplayFrame();
+    }
+
+    function replayTogglePlay() {
+        if (replayInterval) {
+            clearInterval(replayInterval);
+            replayInterval = null;
+            document.getElementById('replay-play').innerHTML = '&#9654; Play';
+        } else {
+            document.getElementById('replay-play').innerHTML = '&#10074;&#10074; Pause';
+            replayInterval = setInterval(() => {
+                if (replayIndex >= replaySnapshots.length - 1) {
+                    clearInterval(replayInterval);
+                    replayInterval = null;
+                    document.getElementById('replay-play').innerHTML = '&#9654; Play';
+                    return;
+                }
+                replayIndex++;
+                showReplayFrame();
+            }, 800);
+        }
+    }
+
+    function updateReplayUI() {
+        document.getElementById('replay-info').textContent = `${replayIndex + 1} / ${replaySnapshots.length}`;
+        document.getElementById('replay-prev').disabled = replayIndex <= 0;
+        document.getElementById('replay-next').disabled = replayIndex >= replaySnapshots.length - 1;
     }
 
     // ===== EVENT LISTENERS =====
-    canvas.addEventListener('click', (e) => {
+
+    // Unified pointer handling for mouse and touch
+    function getCanvasCoords(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        handleClick(
-            (e.clientX - rect.left) * scaleX,
-            (e.clientY - rect.top) * scaleY
-        );
+        let clientX, clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+            clientY = e.changedTouches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    // Mouse click
+    canvas.addEventListener('click', (e) => {
+        const coords = getCanvasCoords(e);
+        handleClick(coords.x, coords.y);
     });
+
+    // Touch support with larger hit targets
+    let touchHandled = false;
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // prevent scroll while interacting with board
+        touchHandled = false;
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (touchHandled) return;
+        touchHandled = true;
+        const coords = getCanvasCoords(e);
+        handleClick(coords.x, coords.y);
+    }, { passive: false });
+
+    // Prevent scrolling when touching the board area
+    container.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
 
     window.addEventListener('resize', () => {
         if (document.getElementById('game-container').classList.contains('show')) {
