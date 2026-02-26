@@ -4,410 +4,793 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bagh Chal - बाघ चाल</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --tiger: #e74c3c;
+            --tiger-light: #ff6b6b;
+            --tiger-dark: #b71c1c;
+            --goat: #43a047;
+            --goat-light: #81c784;
+            --goat-dark: #1b5e20;
+            --gold: #f0c040;
+            --gold-dim: rgba(240, 192, 64, 0.3);
+            --bg-dark: #0c0e1a;
+            --bg-mid: #141728;
+            --bg-card: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.08);
+            --text: #e8e8f0;
+            --text-dim: #8888a0;
+            --board-bg: #2a1f14;
+            --board-line: rgba(210, 180, 140, 0.45);
+            --board-dot: rgba(210, 180, 140, 0.6);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-dark);
             min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* === ANIMATED BACKGROUND === */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(231,76,60,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 90%, rgba(67,160,71,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 50% 50%, rgba(240,192,64,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #e0e0e0;
+            min-height: 100vh;
         }
 
+        /* === HEADER === */
         header {
             text-align: center;
-            padding: 20px;
+            padding: 28px 20px 8px;
+            width: 100%;
         }
 
-        header h1 {
-            font-size: 2.5rem;
-            color: #e94560;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        .title-main {
+            font-family: 'Cinzel', serif;
+            font-size: 2.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold) 0%, #ffe082 40%, var(--gold) 60%, #ffb300 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            filter: drop-shadow(0 2px 8px rgba(240,192,64,0.3));
         }
 
-        header h2 {
-            font-size: 1.2rem;
-            color: #a8a8a8;
-            font-weight: normal;
+        .title-sub {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
             margin-top: 4px;
         }
 
-        .game-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 30px;
-            padding: 10px 20px;
+        /* === LAYOUT === */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 240px auto 240px;
+            gap: 28px;
+            padding: 16px 24px 40px;
+            max-width: 1100px;
+            width: 100%;
+            align-items: start;
         }
 
-        .info-panel {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 24px;
-            width: 220px;
-            backdrop-filter: blur(10px);
+        /* === GLASS PANELS === */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
-        .info-panel h3 {
-            color: #e94560;
-            margin-bottom: 16px;
-            font-size: 1.1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 8px;
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
         }
 
-        .stat {
+        /* === TURN INDICATOR === */
+        .turn-box {
+            text-align: center;
+            padding: 14px 12px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .turn-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            opacity: 0.15;
+            transition: background 0.4s;
+        }
+
+        .turn-box.is-goat {
+            border: 1.5px solid var(--goat);
+            color: var(--goat-light);
+        }
+        .turn-box.is-goat::before { background: var(--goat); }
+
+        .turn-box.is-tiger {
+            border: 1.5px solid var(--tiger);
+            color: var(--tiger-light);
+        }
+        .turn-box.is-tiger::before { background: var(--tiger); }
+
+        .turn-label {
+            position: relative;
+            z-index: 1;
+        }
+
+        .turn-icon {
+            font-size: 1.3rem;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        /* === PHASE BADGE === */
+        .phase-badge {
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            background: rgba(240,192,64,0.08);
+            color: var(--gold);
+            border: 1px solid rgba(240,192,64,0.15);
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+        }
+
+        /* === STATS === */
+        .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
+        .stat-row:last-child { border-bottom: none; }
 
         .stat-label {
-            color: #a8a8a8;
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            font-weight: 400;
         }
 
         .stat-value {
-            color: #fff;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1rem;
+            font-variant-numeric: tabular-nums;
         }
 
-        .turn-indicator {
-            text-align: center;
-            padding: 12px;
-            margin-bottom: 16px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1rem;
+        .stat-value.tiger-color { color: var(--tiger-light); }
+        .stat-value.goat-color { color: var(--goat-light); }
+
+        /* === GOAT RESERVE (visual goat counter) === */
+        .goat-reserve {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            justify-content: center;
+            padding: 12px 0 6px;
+        }
+
+        .goat-pip {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--goat);
+            opacity: 0.8;
             transition: all 0.3s;
         }
 
-        .turn-tiger {
-            background: rgba(233, 69, 96, 0.2);
-            border: 1px solid #e94560;
-            color: #e94560;
+        .goat-pip.used {
+            opacity: 0.15;
+            transform: scale(0.7);
         }
 
-        .turn-goat {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid #4CAF50;
-            color: #4CAF50;
+        /* === CAPTURED GOATS VISUAL === */
+        .capture-tray {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            padding: 8px 0;
+            min-height: 28px;
         }
 
-        .phase-indicator {
-            text-align: center;
-            padding: 8px;
-            margin-bottom: 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            background: rgba(255,255,255,0.05);
-            color: #ccc;
+        .capture-skull {
+            font-size: 0.9rem;
+            animation: captureAppear 0.4s ease;
         }
 
-        #board-container {
-            position: relative;
-            width: 420px;
-            height: 420px;
+        @keyframes captureAppear {
+            from { transform: scale(0) rotate(-180deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
-        #board-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
+        /* === WIN CONDITIONS === */
+        .win-section {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
         }
 
-        .piece {
-            position: absolute;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            cursor: pointer;
+        .win-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
-            z-index: 10;
-            user-select: none;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            line-height: 1.4;
         }
 
-        .piece:hover {
-            transform: scale(1.15);
+        .win-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
         }
 
-        .piece.tiger {
-            background: radial-gradient(circle at 35% 35%, #ff6b6b, #c0392b);
-            border: 3px solid #e74c3c;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.5);
-            color: #fff;
-        }
-
-        .piece.goat {
-            background: radial-gradient(circle at 35% 35%, #81c784, #2e7d32);
-            border: 3px solid #4CAF50;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
-            color: #fff;
-        }
-
-        .piece.selected {
-            transform: scale(1.2);
-            box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.7);
-            border-color: #ffd700;
-        }
-
-        .intersection {
-            position: absolute;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 5;
-            transition: background 0.2s;
-        }
-
-        .intersection:hover {
-            background: rgba(255, 215, 0, 0.3);
-        }
-
-        .intersection.valid-move {
-            background: rgba(255, 215, 0, 0.2);
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { background: rgba(255, 215, 0, 0.15); }
-            50% { background: rgba(255, 215, 0, 0.35); }
-        }
-
+        /* === BUTTONS === */
         .btn {
             display: block;
             width: 100%;
-            padding: 12px;
-            margin-top: 12px;
+            padding: 13px;
+            margin-top: 14px;
             border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: bold;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
         }
 
-        .btn-restart {
-            background: linear-gradient(135deg, #e94560, #c0392b);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--tiger) 0%, var(--tiger-dark) 100%);
             color: #fff;
+            box-shadow: 0 4px 16px rgba(231,76,60,0.25);
         }
-
-        .btn-restart:hover {
-            background: linear-gradient(135deg, #ff6b6b, #e94560);
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+            box-shadow: 0 6px 24px rgba(231,76,60,0.4);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.06);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
         }
 
-        .rules-panel {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 24px;
-            width: 220px;
-            backdrop-filter: blur(10px);
-            font-size: 0.85rem;
-            line-height: 1.6;
+        /* === BOARD === */
+        .board-frame {
+            position: relative;
+            padding: 12px;
+            border-radius: 22px;
+            background: linear-gradient(145deg, #3d2b1a, #2a1a0c);
+            box-shadow:
+                0 0 0 1px rgba(210,180,140,0.15),
+                0 0 0 4px rgba(42,31,20,0.9),
+                0 0 0 5px rgba(210,180,140,0.1),
+                0 20px 60px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            justify-self: center;
         }
 
-        .rules-panel h3 {
-            color: #e94560;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 8px;
+        .board-inner {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
         }
 
-        .rules-panel ul {
-            padding-left: 16px;
-            color: #bbb;
+        #board-canvas {
+            display: block;
+            border-radius: 14px;
+            cursor: pointer;
         }
 
-        .rules-panel li {
+        /* === MOVE HISTORY === */
+        .history-scroll {
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+
+        .history-scroll::-webkit-scrollbar { width: 4px; }
+        .history-scroll::-webkit-scrollbar-track { background: transparent; }
+        .history-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            transition: background 0.2s;
+        }
+        .history-item:hover { background: rgba(255,255,255,0.04); }
+
+        .history-num {
+            color: rgba(255,255,255,0.2);
+            font-size: 0.72rem;
+            width: 20px;
+            text-align: right;
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-icon {
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .history-text {
+            flex: 1;
+        }
+
+        .history-capture {
+            color: var(--tiger-light);
+            font-weight: 600;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 24px 0;
+            color: rgba(255,255,255,0.15);
+            font-size: 0.82rem;
+            font-style: italic;
+        }
+
+        /* === RULES === */
+        .rules-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-list li {
+            padding: 7px 0;
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .rules-list li:last-child { border-bottom: none; }
+
+        .rule-bullet {
+            color: var(--gold);
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            margin-top: 4px;
+        }
+
+        .tiger-text { color: var(--tiger-light); font-weight: 600; }
+        .goat-text { color: var(--goat-light); font-weight: 600; }
+
+        /* === TOAST NOTIFICATIONS === */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            backdrop-filter: blur(20px);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s forwards;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .toast-capture {
+            background: rgba(231,76,60,0.9);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .toast-info {
+            background: rgba(240,192,64,0.9);
+            color: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        @keyframes toastIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        /* === WIN OVERLAY === */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+        }
+        .overlay.show { display: flex; }
+
+        .win-card {
+            background: linear-gradient(145deg, var(--bg-mid), var(--bg-dark));
+            border: 2px solid var(--gold);
+            border-radius: 24px;
+            padding: 48px 56px;
+            text-align: center;
+            max-width: 440px;
+            width: 90%;
+            animation: winAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 80px rgba(240,192,64,0.15), 0 30px 60px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .win-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--gold), transparent 40%, transparent 60%, var(--gold));
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        @keyframes winAppear {
+            from { transform: scale(0.5) translateY(40px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .win-trophy {
+            font-size: 4rem;
+            margin-bottom: 8px;
+            animation: trophyBounce 1s ease infinite;
+        }
+
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .win-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 8px;
         }
 
-        .rules-panel .tiger-text { color: #e94560; font-weight: bold; }
-        .rules-panel .goat-text { color: #4CAF50; font-weight: bold; }
-
-        .message-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
+        .win-title.tiger-win {
+            background: linear-gradient(135deg, var(--tiger-light), #ffab91);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .message-overlay.show {
-            display: flex;
+        .win-title.goat-win {
+            background: linear-gradient(135deg, var(--goat-light), #c8e6c9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .message-box {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 2px solid #e94560;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            max-width: 400px;
-            animation: scaleIn 0.3s ease;
+        .win-subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+            margin-bottom: 28px;
+            line-height: 1.5;
         }
 
-        @keyframes scaleIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .message-box h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: #ffd700;
-        }
-
-        .message-box p {
-            font-size: 1.1rem;
-            color: #ccc;
-            margin-bottom: 24px;
-        }
-
-        .message-box .btn {
+        .win-card .btn {
             width: auto;
             display: inline-block;
-            padding: 12px 32px;
+            padding: 14px 40px;
+            font-size: 1rem;
         }
 
-        @media (max-width: 900px) {
-            .game-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            .info-panel, .rules-panel {
-                width: 420px;
-                max-width: 90vw;
-            }
+        /* === CONFETTI CANVAS === */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 350;
+            pointer-events: none;
         }
 
-        @media (max-width: 460px) {
-            #board-container {
-                width: 340px;
-                height: 340px;
+        /* === SOUND TOGGLE === */
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .sound-toggle:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+        }
+
+        /* === FOOTER === */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.15);
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 960px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                max-width: 520px;
+                gap: 16px;
             }
-            header h1 { font-size: 1.8rem; }
+            .game-layout > .panel:first-child { order: 1; }
+            .game-layout > .board-frame { order: 0; }
+            .game-layout > .panel:last-child { order: 2; }
+
+            .board-frame { justify-self: center; }
+        }
+
+        @media (max-width: 500px) {
+            .title-main { font-size: 1.8rem; letter-spacing: 1px; }
+            .title-sub { font-size: 0.75rem; letter-spacing: 2px; }
+            header { padding: 18px 16px 4px; }
+            .game-layout { padding: 12px 12px 30px; gap: 12px; }
+            .panel { padding: 16px; border-radius: 14px; }
+            .board-frame { padding: 8px; border-radius: 16px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>बाघ चाल - Bagh Chal</h1>
-        <h2>The Tiger Moving Game of Nepal</h2>
-    </header>
+    <div class="bg-pattern"></div>
+    <canvas id="confetti-canvas"></canvas>
 
-    <div class="game-container">
-        <div class="info-panel">
-            <div id="turn-indicator" class="turn-indicator turn-goat">
-                Goat's Turn
+    <div class="app">
+        <header>
+            <div class="title-main">बाघ चाल</div>
+            <div class="title-sub">The Tiger Moving Game of Nepal</div>
+        </header>
+
+        <div class="game-layout">
+            <!-- LEFT PANEL: Game Status -->
+            <div class="panel">
+                <div id="turn-box" class="turn-box is-goat">
+                    <span class="turn-label"><span class="turn-icon">🐐</span> Goat's Turn</span>
+                </div>
+                <div id="phase-badge" class="phase-badge">
+                    Phase 1 — Place Goats
+                </div>
+
+                <div class="panel-title">Game Status</div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Goats Placed</span>
+                    <span class="stat-value goat-color" id="goats-placed">0 / 20</span>
+                </div>
+                <div id="goat-reserve" class="goat-reserve"></div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Goats Captured</span>
+                    <span class="stat-value tiger-color" id="goats-captured">0 / 5</span>
+                </div>
+                <div id="capture-tray" class="capture-tray"></div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Tigers Trapped</span>
+                    <span class="stat-value" id="tigers-trapped" style="color: var(--gold);">0 / 4</span>
+                </div>
+
+                <div class="win-section">
+                    <div class="win-row">
+                        <span class="win-icon">🐅</span>
+                        <span><span class="tiger-text">Tigers</span> win by capturing 5 goats</span>
+                    </div>
+                    <div class="win-row">
+                        <span class="win-icon">🐐</span>
+                        <span><span class="goat-text">Goats</span> win by trapping all 4 tigers</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="restartGame()">New Game</button>
+                <button class="btn btn-secondary" id="btn-undo" onclick="undoMove()" disabled>Undo Move</button>
             </div>
-            <div id="phase-indicator" class="phase-indicator">
-                Phase 1: Place Goats
+
+            <!-- CENTER: Board -->
+            <div class="board-frame">
+                <div class="board-inner">
+                    <canvas id="board-canvas"></canvas>
+                </div>
             </div>
-            <h3>Game Status</h3>
-            <div class="stat">
-                <span class="stat-label">Goats Placed</span>
-                <span class="stat-value" id="goats-placed">0 / 20</span>
+
+            <!-- RIGHT PANEL: History & Rules -->
+            <div class="panel">
+                <div class="panel-title">Move History</div>
+                <div id="history-scroll" class="history-scroll">
+                    <div class="history-empty">No moves yet</div>
+                </div>
+
+                <div class="panel-title" style="margin-top: 20px;">How to Play</div>
+                <ul class="rules-list">
+                    <li><span class="rule-bullet">◆</span><span><span class="tiger-text">4 Tigers</span> start on the board corners</span></li>
+                    <li><span class="rule-bullet">◆</span><span><span class="goat-text">20 Goats</span> are placed one per turn on empty intersections</span></li>
+                    <li><span class="rule-bullet">◆</span><span>After all goats placed, both sides move</span></li>
+                    <li><span class="rule-bullet">◆</span><span>Pieces move along lines to adjacent points</span></li>
+                    <li><span class="rule-bullet">◆</span><span>Tigers capture by jumping over goats</span></li>
+                    <li><span class="rule-bullet">◆</span><span>Goats cannot jump or capture</span></li>
+                </ul>
             </div>
-            <div class="stat">
-                <span class="stat-label">Goats Captured</span>
-                <span class="stat-value" id="goats-captured">0</span>
-            </div>
-            <div class="stat">
-                <span class="stat-label">Tigers Trapped</span>
-                <span class="stat-value" id="tigers-trapped">0</span>
-            </div>
-            <h3 style="margin-top: 20px;">Win Conditions</h3>
-            <div style="font-size: 0.85rem; color: #bbb; line-height: 1.6;">
-                <p><span style="color: #e94560; font-weight: bold;">Tigers</span> win by capturing 5 goats</p>
-                <p style="margin-top: 6px;"><span style="color: #4CAF50; font-weight: bold;">Goats</span> win by trapping all 4 tigers</p>
-            </div>
-            <button class="btn btn-restart" onclick="restartGame()">New Game</button>
         </div>
 
-        <div id="board-container">
-            <canvas id="board-canvas"></canvas>
-        </div>
+        <footer>BAGH CHAL — A TRADITIONAL NEPALI STRATEGY GAME</footer>
+    </div>
 
-        <div class="rules-panel">
-            <h3>How to Play</h3>
-            <ul>
-                <li><span class="tiger-text">4 Tigers</span> start on the board corners</li>
-                <li><span class="goat-text">20 Goats</span> are placed one per turn on empty intersections</li>
-                <li>After all goats are placed, both sides take turns moving</li>
-                <li>Pieces move along lines to adjacent intersections</li>
-                <li>Tigers capture goats by jumping over them (the landing spot must be empty)</li>
-                <li>Goats cannot jump</li>
-                <li><span class="tiger-text">Tigers win</span> by capturing 5 goats</li>
-                <li><span class="goat-text">Goats win</span> by blocking all tigers from moving</li>
-            </ul>
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Win overlay -->
+    <div class="overlay" id="win-overlay">
+        <div class="win-card">
+            <div class="win-trophy" id="win-trophy">🏆</div>
+            <div class="win-title" id="win-title">Victory!</div>
+            <div class="win-subtitle" id="win-subtitle">Amazing game!</div>
+            <button class="btn btn-primary" onclick="restartGame()">Play Again</button>
         </div>
     </div>
 
-    <div class="message-overlay" id="message-overlay">
-        <div class="message-box">
-            <h2 id="message-title">Game Over</h2>
-            <p id="message-text">Someone wins!</p>
-            <button class="btn btn-restart" onclick="restartGame()">Play Again</button>
-        </div>
-    </div>
+    <!-- Sound toggle -->
+    <button class="sound-toggle" id="sound-toggle" title="Toggle sound" onclick="toggleSound()">🔊</button>
 
     <script>
-    // ===== BAGH CHAL GAME ENGINE =====
+    // ═══════════════════════════════════════════════════
+    // BAGH CHAL — PREMIUM GAME ENGINE
+    // ═══════════════════════════════════════════════════
 
     const BOARD_SIZE = 5;
     const TOTAL_GOATS = 20;
-    const GOATS_TO_WIN = 5; // Tigers win if they capture this many
+    const GOATS_TO_WIN = 5;
 
-    // Board positions: 5x5 grid (0,0) to (4,4)
-    // Adjacency includes diagonals on certain intersections
+    // ── Audio System ──
+    let soundEnabled = true;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
 
-    // Build adjacency map
-    // Lines on the board: horizontal, vertical, and diagonals
-    // Diagonals exist on squares where (row+col) is even
-    const adjacency = {};
-
-    function posKey(r, c) {
-        return `${r},${c}`;
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        return audioCtx;
     }
 
+    function playTone(freq, duration, type = 'sine', vol = 0.15) {
+        if (!soundEnabled) return;
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(vol, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + duration);
+        } catch (e) { /* audio not available */ }
+    }
+
+    function sfxPlace() {
+        playTone(600, 0.12, 'sine', 0.12);
+        setTimeout(() => playTone(800, 0.08, 'sine', 0.08), 60);
+    }
+
+    function sfxMove() {
+        playTone(440, 0.1, 'triangle', 0.1);
+    }
+
+    function sfxCapture() {
+        playTone(200, 0.3, 'sawtooth', 0.1);
+        setTimeout(() => playTone(150, 0.4, 'sawtooth', 0.08), 100);
+    }
+
+    function sfxSelect() {
+        playTone(520, 0.06, 'sine', 0.08);
+    }
+
+    function sfxWin() {
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((n, i) => {
+            setTimeout(() => playTone(n, 0.3, 'sine', 0.12), i * 150);
+        });
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+    }
+
+    // ── Board Adjacency ──
+    const adjacency = {};
+
+    function posKey(r, c) { return `${r},${c}`; }
     function parseKey(key) {
         const [r, c] = key.split(',').map(Number);
         return { r, c };
     }
 
-    // Initialize adjacency
-    for (let r = 0; r < BOARD_SIZE; r++) {
-        for (let c = 0; c < BOARD_SIZE; c++) {
+    for (let r = 0; r < BOARD_SIZE; r++)
+        for (let c = 0; c < BOARD_SIZE; c++)
             adjacency[posKey(r, c)] = [];
-        }
-    }
 
-    // Horizontal and vertical connections
     for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
             if (c + 1 < BOARD_SIZE) {
@@ -421,47 +804,59 @@
         }
     }
 
-    // Diagonal connections: only from positions where (r+c) is even
-    const diagDirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+    const diagDirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
     for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
             if ((r + c) % 2 === 0) {
                 for (const [dr, dc] of diagDirs) {
-                    const nr = r + dr;
-                    const nc = c + dc;
+                    const nr = r + dr, nc = c + dc;
                     if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-                        if (!adjacency[posKey(r, c)].includes(posKey(nr, nc))) {
+                        if (!adjacency[posKey(r, c)].includes(posKey(nr, nc)))
                             adjacency[posKey(r, c)].push(posKey(nr, nc));
-                        }
-                        if (!adjacency[posKey(nr, nc)].includes(posKey(r, c))) {
+                        if (!adjacency[posKey(nr, nc)].includes(posKey(r, c)))
                             adjacency[posKey(nr, nc)].push(posKey(r, c));
-                        }
                     }
                 }
             }
         }
     }
 
-    // Game state
-    let board = {};         // posKey -> 'tiger' | 'goat' | null
+    // ── Game State ──
+    let board = {};
     let goatsPlaced = 0;
     let goatsCaptured = 0;
-    let currentTurn = 'goat'; // 'goat' or 'tiger'
+    let currentTurn = 'goat';
     let selectedPiece = null;
     let gameOver = false;
     let validMoves = [];
+    let moveHistory = [];
+    let stateHistory = [];  // For undo
 
-    // Canvas and layout
+    // Animation state
+    let animating = false;
+    let animPiece = null;  // { type, fromX, fromY, toX, toY, progress, captureKey }
+    let lastMoveFrom = null;
+    let lastMoveTo = null;
+
+    // Particle system
+    let particles = [];
+
+    // ── Canvas ──
     const canvas = document.getElementById('board-canvas');
     const ctx = canvas.getContext('2d');
-    const container = document.getElementById('board-container');
     let boardPixelSize, padding, cellSize;
 
     function initLayout() {
-        boardPixelSize = container.offsetWidth;
-        canvas.width = boardPixelSize;
-        canvas.height = boardPixelSize;
-        padding = 40;
+        const container = document.querySelector('.board-inner');
+        const maxW = Math.min(480, window.innerWidth - 64);
+        boardPixelSize = maxW;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = boardPixelSize * dpr;
+        canvas.height = boardPixelSize * dpr;
+        canvas.style.width = boardPixelSize + 'px';
+        canvas.style.height = boardPixelSize + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        padding = boardPixelSize * 0.1;
         cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
     }
 
@@ -476,35 +871,64 @@
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const { x, y } = gridToPixel(r, c);
-                const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
-                if (dist < cellSize * 0.35) {
-                    return { r, c };
-                }
+                if (Math.hypot(px - x, py - y) < cellSize * 0.32) return { r, c };
             }
         }
         return null;
     }
 
-    // ===== DRAWING =====
+    // ── Drawing ──
 
     function drawBoard() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const w = boardPixelSize, h = boardPixelSize;
+        ctx.clearRect(0, 0, w, h);
 
-        // Draw background
-        ctx.fillStyle = 'rgba(30, 30, 50, 0.8)';
+        // Board background with subtle wood grain
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#3a2a1a');
+        bgGrad.addColorStop(0.3, '#2e1f10');
+        bgGrad.addColorStop(0.7, '#33240f');
+        bgGrad.addColorStop(1, '#2a1a0a');
+        ctx.fillStyle = bgGrad;
         ctx.beginPath();
-        ctx.roundRect(0, 0, canvas.width, canvas.height, 16);
+        ctx.roundRect(0, 0, w, h, 14);
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-        ctx.lineWidth = 1.5;
+        // Subtle grain texture lines
+        ctx.globalAlpha = 0.03;
+        for (let i = 0; i < h; i += 3) {
+            ctx.strokeStyle = i % 6 === 0 ? '#d4a06a' : '#1a0e04';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(0, i + Math.sin(i * 0.1) * 2);
+            ctx.lineTo(w, i + Math.cos(i * 0.08) * 2);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
 
-        // Draw grid lines
+        // Draw decorative corner ornaments
+        const ornSize = padding * 0.5;
+        ctx.strokeStyle = 'rgba(210, 180, 140, 0.12)';
+        ctx.lineWidth = 1;
+        const corners = [[padding * 0.3, padding * 0.3], [w - padding * 0.3, padding * 0.3],
+                          [padding * 0.3, h - padding * 0.3], [w - padding * 0.3, h - padding * 0.3]];
+        for (const [cx, cy] of corners) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, ornSize, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx, cy, ornSize * 0.5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Grid lines
+        ctx.strokeStyle = 'rgba(210, 180, 140, 0.35)';
+        ctx.lineWidth = 1.2;
+
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const from = gridToPixel(r, c);
 
-                // Horizontal
                 if (c + 1 < BOARD_SIZE) {
                     const to = gridToPixel(r, c + 1);
                     ctx.beginPath();
@@ -512,8 +936,6 @@
                     ctx.lineTo(to.x, to.y);
                     ctx.stroke();
                 }
-
-                // Vertical
                 if (r + 1 < BOARD_SIZE) {
                     const to = gridToPixel(r + 1, c);
                     ctx.beginPath();
@@ -521,17 +943,10 @@
                     ctx.lineTo(to.x, to.y);
                     ctx.stroke();
                 }
-
-                // Diagonals
                 if ((r + c) % 2 === 0) {
                     for (const [dr, dc] of diagDirs) {
-                        const nr = r + dr;
-                        const nc = c + dc;
+                        const nr = r + dr, nc = c + dc;
                         if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-                            // Only draw in one direction to avoid double-drawing
-                            if (dr > 0 || (dr === 0 && dc > 0)) {
-                                // Actually for diags, just check positive direction
-                            }
                             const to = gridToPixel(nr, nc);
                             ctx.beginPath();
                             ctx.moveTo(from.x, from.y);
@@ -543,104 +958,375 @@
             }
         }
 
-        // Draw valid move indicators
-        for (const move of validMoves) {
-            const { r, c } = parseKey(move.to);
-            const { x, y } = gridToPixel(r, c);
+        // Last move highlight
+        if (lastMoveFrom && lastMoveTo) {
+            const f = parseKey(lastMoveFrom);
+            const t = parseKey(lastMoveTo);
+            const fp = gridToPixel(f.r, f.c);
+            const tp = gridToPixel(t.r, t.c);
+
+            ctx.strokeStyle = 'rgba(240, 192, 64, 0.2)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 4]);
             ctx.beginPath();
-            ctx.arc(x, y, 12, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+            ctx.moveTo(fp.x, fp.y);
+            ctx.lineTo(tp.x, tp.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // From indicator (faded ring)
+            ctx.beginPath();
+            ctx.arc(fp.x, fp.y, 14, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(240, 192, 64, 0.15)';
             ctx.lineWidth = 2;
             ctx.stroke();
         }
 
-        // Draw intersection dots
+        // Valid move indicators
+        for (const move of validMoves) {
+            const { r, c } = parseKey(move.to);
+            const { x, y } = gridToPixel(r, c);
+
+            if (move.capture) {
+                // Capture moves: red pulsing ring
+                const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.005);
+                ctx.beginPath();
+                ctx.arc(x, y, 14, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(231, 76, 60, ${0.15 + pulse * 0.15})`;
+                ctx.fill();
+                ctx.strokeStyle = `rgba(231, 76, 60, ${0.4 + pulse * 0.3})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // X marker
+                ctx.strokeStyle = `rgba(231, 76, 60, ${0.3 + pulse * 0.2})`;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 5, y - 5); ctx.lineTo(x + 5, y + 5);
+                ctx.moveTo(x + 5, y - 5); ctx.lineTo(x - 5, y + 5);
+                ctx.stroke();
+            } else {
+                // Normal moves: golden dot
+                const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.004);
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(240, 192, 64, ${0.2 + pulse * 0.2})`;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(240, 192, 64, ${0.3 + pulse * 0.3})`;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+
+        // Intersection dots
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
-                const { x, y } = gridToPixel(r, c);
                 const key = posKey(r, c);
+                const { x, y } = gridToPixel(r, c);
 
                 if (!board[key]) {
                     ctx.beginPath();
-                    ctx.arc(x, y, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(210, 180, 140, 0.5)';
+                    ctx.fill();
+                } else {
+                    // Small mounting circle behind pieces
+                    ctx.beginPath();
+                    ctx.arc(x, y, 20, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
                     ctx.fill();
                 }
             }
         }
 
-        // Draw pieces
+        // Draw pieces (skip animating piece at source)
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const key = posKey(r, c);
+                if (animPiece && key === animPiece.fromKey) continue;
+                if (animPiece && animPiece.captureKey && key === animPiece.captureKey) {
+                    // Draw captured piece fading out
+                    const alpha = 1 - animPiece.progress;
+                    drawPiece(r, c, 'goat', false, alpha, 1 - animPiece.progress * 0.5);
+                    continue;
+                }
                 const piece = board[key];
                 if (!piece) continue;
-
-                const { x, y } = gridToPixel(r, c);
                 const isSelected = selectedPiece === key;
-                const radius = isSelected ? 20 : 18;
-
-                // Shadow
-                ctx.beginPath();
-                ctx.arc(x + 2, y + 3, radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fill();
-
-                // Main circle
-                const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, radius);
-                if (piece === 'tiger') {
-                    grad.addColorStop(0, '#ff8a65');
-                    grad.addColorStop(1, '#c0392b');
-                } else {
-                    grad.addColorStop(0, '#a5d6a7');
-                    grad.addColorStop(1, '#2e7d32');
-                }
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
-
-                // Border
-                ctx.strokeStyle = isSelected ? '#ffd700' : (piece === 'tiger' ? '#e74c3c' : '#4CAF50');
-                ctx.lineWidth = isSelected ? 3 : 2;
-                ctx.stroke();
-
-                // Selection glow
-                if (isSelected) {
-                    ctx.beginPath();
-                    ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                }
-
-                // Label
-                ctx.fillStyle = '#fff';
-                ctx.font = `bold ${radius}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(piece === 'tiger' ? '🐅' : '🐐', x, y + 1);
+                drawPiece(r, c, piece, isSelected, 1, 1);
             }
+        }
+
+        // Draw animating piece
+        if (animPiece) {
+            const x = animPiece.fromX + (animPiece.toX - animPiece.fromX) * easeOutCubic(animPiece.progress);
+            const y = animPiece.fromY + (animPiece.toY - animPiece.fromY) * easeOutCubic(animPiece.progress);
+            drawPieceAt(x, y, animPiece.type, false, 1, 1);
+        }
+
+        // Draw particles
+        drawParticles();
+
+        // Request next frame if animating
+        if (animating || validMoves.length > 0 || particles.length > 0) {
+            requestAnimationFrame(drawBoard);
         }
     }
 
-    // ===== GAME LOGIC =====
+    function drawPiece(r, c, type, isSelected, alpha, scale) {
+        const { x, y } = gridToPixel(r, c);
+        drawPieceAt(x, y, type, isSelected, alpha, scale);
+    }
+
+    function drawPieceAt(x, y, type, isSelected, alpha, scale) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        const baseRadius = cellSize * 0.2;
+        const radius = baseRadius * scale * (isSelected ? 1.12 : 1);
+
+        // Drop shadow
+        ctx.beginPath();
+        ctx.arc(x + 1.5, y + 2.5, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,0,0,${0.35 * alpha})`;
+        ctx.fill();
+
+        // Main body gradient
+        const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+        if (type === 'tiger') {
+            grad.addColorStop(0, '#ff9a76');
+            grad.addColorStop(0.5, '#e74c3c');
+            grad.addColorStop(1, '#a51c1c');
+        } else {
+            grad.addColorStop(0, '#b9e4b9');
+            grad.addColorStop(0.5, '#4caf50');
+            grad.addColorStop(1, '#1b5e20');
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Specular highlight
+        const specGrad = ctx.createRadialGradient(x - radius * 0.25, y - radius * 0.3, 0, x - radius * 0.25, y - radius * 0.3, radius * 0.6);
+        specGrad.addColorStop(0, 'rgba(255,255,255,0.35)');
+        specGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = specGrad;
+        ctx.fill();
+
+        // Border
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = isSelected ? '#ffd700' : (type === 'tiger' ? '#c0392b' : '#2e7d32');
+        ctx.lineWidth = isSelected ? 2.5 : 1.5;
+        ctx.stroke();
+
+        // Selection glow
+        if (isSelected) {
+            const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.006);
+            ctx.beginPath();
+            ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 215, 0, ${0.4 * pulse})`;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(x, y, radius + 9, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 215, 0, ${0.15 * pulse})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        // Emoji label
+        ctx.font = `${Math.round(radius * 1.1)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(type === 'tiger' ? '🐅' : '🐐', x, y + 1);
+
+        ctx.restore();
+    }
+
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    // ── Particle System ──
+
+    function spawnParticles(x, y, color, count) {
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+            const speed = 1.5 + Math.random() * 3;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1,
+                decay: 0.015 + Math.random() * 0.02,
+                size: 2 + Math.random() * 4,
+                color
+            });
+        }
+    }
+
+    function drawParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.05; // gravity
+            p.life -= p.decay;
+
+            if (p.life <= 0) {
+                particles.splice(i, 1);
+                continue;
+            }
+
+            ctx.save();
+            ctx.globalAlpha = p.life;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    // ── Animation ──
+
+    function animateMove(fromKey, toKey, type, captureKey, onComplete) {
+        const from = parseKey(fromKey);
+        const to = parseKey(toKey);
+        const fp = gridToPixel(from.r, from.c);
+        const tp = gridToPixel(to.r, to.c);
+
+        animating = true;
+        animPiece = {
+            type,
+            fromKey,
+            fromX: fp.x, fromY: fp.y,
+            toX: tp.x, toY: tp.y,
+            progress: 0,
+            captureKey
+        };
+
+        const duration = 250;
+        const start = performance.now();
+
+        function step(now) {
+            animPiece.progress = Math.min(1, (now - start) / duration);
+            if (animPiece.progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                // Spawn particles at destination
+                if (captureKey) {
+                    const cp = parseKey(captureKey);
+                    const cpx = gridToPixel(cp.r, cp.c);
+                    spawnParticles(cpx.x, cpx.y, '#e74c3c', 18);
+                }
+                spawnParticles(tp.x, tp.y, type === 'tiger' ? '#ff6b6b' : '#81c784', 8);
+
+                animPiece = null;
+                animating = false;
+                onComplete();
+            }
+            drawBoard();
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    // ── Toast ──
+
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 2600);
+    }
+
+    // ── Confetti ──
+
+    let confettiPieces = [];
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let confettiRunning = false;
+
+    function resizeConfetti() {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+    }
+
+    function launchConfetti() {
+        resizeConfetti();
+        confettiPieces = [];
+        const colors = ['#e74c3c','#f0c040','#43a047','#3498db','#9b59b6','#ff6b6b','#81c784','#ffd700'];
+        for (let i = 0; i < 150; i++) {
+            confettiPieces.push({
+                x: Math.random() * confettiCanvas.width,
+                y: -20 - Math.random() * 400,
+                w: 6 + Math.random() * 6,
+                h: 4 + Math.random() * 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vy: 2 + Math.random() * 3,
+                vx: -1 + Math.random() * 2,
+                rot: Math.random() * 360,
+                rotSpeed: -4 + Math.random() * 8,
+                life: 1,
+                decay: 0.002 + Math.random() * 0.003
+            });
+        }
+        confettiRunning = true;
+        requestAnimationFrame(animateConfetti);
+    }
+
+    function animateConfetti() {
+        if (!confettiRunning) return;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+        let alive = false;
+        for (const p of confettiPieces) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.rotSpeed;
+            p.life -= p.decay;
+            if (p.life <= 0) continue;
+            alive = true;
+
+            confettiCtx.save();
+            confettiCtx.translate(p.x, p.y);
+            confettiCtx.rotate(p.rot * Math.PI / 180);
+            confettiCtx.globalAlpha = p.life;
+            confettiCtx.fillStyle = p.color;
+            confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            confettiCtx.restore();
+        }
+
+        if (alive) {
+            requestAnimationFrame(animateConfetti);
+        } else {
+            confettiRunning = false;
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+    }
+
+    // ── Game Logic ──
 
     function initGame() {
         board = {};
-        for (let r = 0; r < BOARD_SIZE; r++) {
-            for (let c = 0; c < BOARD_SIZE; c++) {
+        for (let r = 0; r < BOARD_SIZE; r++)
+            for (let c = 0; c < BOARD_SIZE; c++)
                 board[posKey(r, c)] = null;
-            }
-        }
 
-        // Place 4 tigers at corners
-        board[posKey(0, 0)] = 'tiger';
-        board[posKey(0, 4)] = 'tiger';
-        board[posKey(4, 0)] = 'tiger';
-        board[posKey(4, 4)] = 'tiger';
+        board[posKey(0,0)] = 'tiger';
+        board[posKey(0,4)] = 'tiger';
+        board[posKey(4,0)] = 'tiger';
+        board[posKey(4,4)] = 'tiger';
 
         goatsPlaced = 0;
         goatsCaptured = 0;
@@ -648,10 +1334,20 @@
         selectedPiece = null;
         gameOver = false;
         validMoves = [];
+        moveHistory = [];
+        stateHistory = [];
+        lastMoveFrom = null;
+        lastMoveTo = null;
+        animPiece = null;
+        animating = false;
+        particles = [];
+
+        document.getElementById('win-overlay').classList.remove('show');
+        confettiRunning = false;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
 
         updateUI();
         drawBoard();
-        document.getElementById('message-overlay').classList.remove('show');
     }
 
     function getPhase() {
@@ -662,91 +1358,87 @@
         return adjacency[key] || [];
     }
 
-    // Check if a tiger at 'from' can jump over 'mid' to 'to'
     function getJumpTarget(from, mid) {
-        const f = parseKey(from);
-        const m = parseKey(mid);
-        const dr = m.r - f.r;
-        const dc = m.c - f.c;
-        const tr = m.r + dr;
-        const tc = m.c + dc;
-
+        const f = parseKey(from), m = parseKey(mid);
+        const dr = m.r - f.r, dc = m.c - f.c;
+        const tr = m.r + dr, tc = m.c + dc;
         if (tr < 0 || tr >= BOARD_SIZE || tc < 0 || tc >= BOARD_SIZE) return null;
-
         const toKey = posKey(tr, tc);
-
-        // Check that the jump follows a valid line on the board
-        // The 'from' must be adjacent to 'mid' and 'mid' must be adjacent to 'to'
         if (!getAdjacentPositions(from).includes(mid)) return null;
         if (!getAdjacentPositions(mid).includes(toKey)) return null;
-
         return toKey;
     }
 
     function getValidMovesForTiger(key) {
         const moves = [];
-
-        // Normal moves to adjacent empty spots
         for (const adj of getAdjacentPositions(key)) {
-            if (!board[adj]) {
-                moves.push({ to: adj, capture: null });
-            }
+            if (!board[adj]) moves.push({ to: adj, capture: null });
         }
-
-        // Jump captures
         for (const adj of getAdjacentPositions(key)) {
             if (board[adj] === 'goat') {
                 const jumpTo = getJumpTarget(key, adj);
-                if (jumpTo && !board[jumpTo]) {
-                    moves.push({ to: jumpTo, capture: adj });
-                }
+                if (jumpTo && !board[jumpTo]) moves.push({ to: jumpTo, capture: adj });
             }
         }
-
         return moves;
     }
 
     function getValidMovesForGoat(key) {
         const moves = [];
         for (const adj of getAdjacentPositions(key)) {
-            if (!board[adj]) {
-                moves.push({ to: adj, capture: null });
-            }
+            if (!board[adj]) moves.push({ to: adj, capture: null });
         }
         return moves;
     }
 
     function countTrappedTigers() {
         let trapped = 0;
-        for (let r = 0; r < BOARD_SIZE; r++) {
-            for (let c = 0; c < BOARD_SIZE; c++) {
-                const key = posKey(r, c);
-                if (board[key] === 'tiger') {
-                    if (getValidMovesForTiger(key).length === 0) {
-                        trapped++;
-                    }
-                }
-            }
-        }
+        for (let r = 0; r < BOARD_SIZE; r++)
+            for (let c = 0; c < BOARD_SIZE; c++)
+                if (board[posKey(r, c)] === 'tiger' && getValidMovesForTiger(posKey(r, c)).length === 0)
+                    trapped++;
         return trapped;
     }
 
     function checkWinCondition() {
-        // Tigers win if they captured enough goats
-        if (goatsCaptured >= GOATS_TO_WIN) {
-            return 'tiger';
-        }
-
-        // Goats win if all 4 tigers are trapped
-        if (countTrappedTigers() === 4) {
-            return 'goat';
-        }
-
+        if (goatsCaptured >= GOATS_TO_WIN) return 'tiger';
+        if (countTrappedTigers() === 4) return 'goat';
         return null;
     }
 
+    function saveState() {
+        stateHistory.push({
+            board: { ...board },
+            goatsPlaced,
+            goatsCaptured,
+            currentTurn,
+            lastMoveFrom,
+            lastMoveTo
+        });
+    }
+
+    function formatPos(key) {
+        const { r, c } = parseKey(key);
+        return String.fromCharCode(65 + c) + (r + 1);
+    }
+
+    function addMoveToHistory(type, from, to, capture) {
+        const num = moveHistory.length + 1;
+        let text;
+        if (!from) {
+            text = `Place at ${formatPos(to)}`;
+        } else {
+            text = `${formatPos(from)} → ${formatPos(to)}`;
+        }
+        if (capture) {
+            text += ` ✕ ${formatPos(capture)}`;
+        }
+        moveHistory.push({ num, type, text, capture: !!capture });
+        updateHistory();
+    }
+
     function handleClick(px, py) {
-        if (gameOver) return;
+        if (gameOver || animating) return;
 
         const gridPos = pixelToGrid(px, py);
         if (!gridPos) return;
@@ -756,72 +1448,70 @@
 
         if (currentTurn === 'goat') {
             if (phase === 1) {
-                // Placement phase: place a goat on empty intersection
                 if (!board[key]) {
+                    saveState();
                     board[key] = 'goat';
                     goatsPlaced++;
+                    const p = gridToPixel(gridPos.r, gridPos.c);
+                    spawnParticles(p.x, p.y, '#81c784', 6);
+                    sfxPlace();
+                    addMoveToHistory('goat', null, key, null);
+                    lastMoveFrom = null;
+                    lastMoveTo = key;
                     selectedPiece = null;
                     validMoves = [];
                     switchTurn();
                 }
             } else {
-                // Movement phase
-                if (selectedPiece) {
-                    // Try to move
-                    const move = validMoves.find(m => m.to === key);
-                    if (move) {
-                        board[key] = 'goat';
-                        board[selectedPiece] = null;
-                        selectedPiece = null;
-                        validMoves = [];
-                        switchTurn();
-                    } else if (board[key] === 'goat') {
-                        // Select different goat
-                        selectedPiece = key;
-                        validMoves = getValidMovesForGoat(key);
-                        drawBoard();
-                    } else {
-                        selectedPiece = null;
-                        validMoves = [];
-                        drawBoard();
-                    }
-                } else {
-                    if (board[key] === 'goat') {
-                        selectedPiece = key;
-                        validMoves = getValidMovesForGoat(key);
-                        drawBoard();
-                    }
-                }
+                handleMovement(key, 'goat');
             }
         } else {
-            // Tiger's turn
-            if (selectedPiece) {
-                const move = validMoves.find(m => m.to === key);
-                if (move) {
-                    board[key] = 'tiger';
-                    board[selectedPiece] = null;
+            handleMovement(key, 'tiger');
+        }
+    }
+
+    function handleMovement(key, type) {
+        if (selectedPiece) {
+            const move = validMoves.find(m => m.to === key);
+            if (move) {
+                saveState();
+                const fromKey = selectedPiece;
+                lastMoveFrom = fromKey;
+                lastMoveTo = key;
+                selectedPiece = null;
+                validMoves = [];
+
+                // Animate the move
+                animateMove(fromKey, key, type, move.capture, () => {
+                    board[key] = type;
+                    board[fromKey] = null;
                     if (move.capture) {
                         board[move.capture] = null;
                         goatsCaptured++;
+                        sfxCapture();
+                        showToast(`🐅 Tiger captures goat! (${goatsCaptured}/${GOATS_TO_WIN})`, 'capture');
+                    } else {
+                        sfxMove();
                     }
-                    selectedPiece = null;
-                    validMoves = [];
+                    addMoveToHistory(type, fromKey, key, move.capture);
                     switchTurn();
-                } else if (board[key] === 'tiger') {
-                    selectedPiece = key;
-                    validMoves = getValidMovesForTiger(key);
-                    drawBoard();
-                } else {
-                    selectedPiece = null;
-                    validMoves = [];
-                    drawBoard();
-                }
+                });
+            } else if (board[key] === type) {
+                selectedPiece = key;
+                validMoves = type === 'tiger' ? getValidMovesForTiger(key) : getValidMovesForGoat(key);
+                sfxSelect();
+                drawBoard();
             } else {
-                if (board[key] === 'tiger') {
-                    selectedPiece = key;
-                    validMoves = getValidMovesForTiger(key);
-                    drawBoard();
-                }
+                selectedPiece = null;
+                validMoves = [];
+                drawBoard();
+            }
+        } else {
+            if (board[key] === type) {
+                selectedPiece = key;
+                validMoves = type === 'tiger' ? getValidMovesForTiger(key) : getValidMovesForGoat(key);
+                sfxSelect();
+                drawBoard();
             }
         }
     }
@@ -832,74 +1522,161 @@
             gameOver = true;
             updateUI();
             drawBoard();
-            showWinMessage(winner);
+            setTimeout(() => showWinMessage(winner), 400);
             return;
         }
-
         currentTurn = currentTurn === 'goat' ? 'tiger' : 'goat';
         updateUI();
-        drawBoard();
+        if (!animating) drawBoard();
     }
 
     function showWinMessage(winner) {
-        const overlay = document.getElementById('message-overlay');
-        const title = document.getElementById('message-title');
-        const text = document.getElementById('message-text');
+        sfxWin();
+        launchConfetti();
+
+        const trophy = document.getElementById('win-trophy');
+        const title = document.getElementById('win-title');
+        const subtitle = document.getElementById('win-subtitle');
 
         if (winner === 'tiger') {
-            title.textContent = '🐅 Tigers Win!';
-            text.textContent = 'The tigers captured 5 goats. The tigers rule the board!';
+            trophy.textContent = '🐅';
+            title.textContent = 'Tigers Win!';
+            title.className = 'win-title tiger-win';
+            subtitle.textContent = `The tigers captured ${goatsCaptured} goats and dominate the board!`;
         } else {
-            title.textContent = '🐐 Goats Win!';
-            text.textContent = 'All tigers are trapped! The goats have won the battle!';
+            trophy.textContent = '🐐';
+            title.textContent = 'Goats Win!';
+            title.className = 'win-title goat-win';
+            subtitle.textContent = 'All tigers are trapped! The goats prevail through teamwork!';
         }
 
-        overlay.classList.add('show');
+        document.getElementById('win-overlay').classList.add('show');
     }
 
-    function updateUI() {
-        const turnEl = document.getElementById('turn-indicator');
-        const phaseEl = document.getElementById('phase-indicator');
+    function undoMove() {
+        if (stateHistory.length === 0 || gameOver || animating) return;
 
-        turnEl.textContent = currentTurn === 'goat' ? "Goat's Turn 🐐" : "Tiger's Turn 🐅";
-        turnEl.className = `turn-indicator ${currentTurn === 'goat' ? 'turn-goat' : 'turn-tiger'}`;
+        const prev = stateHistory.pop();
+        board = prev.board;
+        goatsPlaced = prev.goatsPlaced;
+        goatsCaptured = prev.goatsCaptured;
+        currentTurn = prev.currentTurn;
+        lastMoveFrom = prev.lastMoveFrom;
+        lastMoveTo = prev.lastMoveTo;
+        selectedPiece = null;
+        validMoves = [];
+
+        if (moveHistory.length > 0) moveHistory.pop();
+
+        sfxSelect();
+        updateUI();
+        updateHistory();
+        drawBoard();
+    }
+
+    // ── UI Updates ──
+
+    function updateUI() {
+        const turnBox = document.getElementById('turn-box');
+        const phaseBadge = document.getElementById('phase-badge');
+
+        if (currentTurn === 'goat') {
+            turnBox.className = 'turn-box is-goat';
+            turnBox.innerHTML = '<span class="turn-label"><span class="turn-icon">🐐</span> Goat\'s Turn</span>';
+        } else {
+            turnBox.className = 'turn-box is-tiger';
+            turnBox.innerHTML = '<span class="turn-label"><span class="turn-icon">🐅</span> Tiger\'s Turn</span>';
+        }
 
         const phase = getPhase();
         if (phase === 1) {
-            phaseEl.textContent = `Phase 1: Place Goats (${TOTAL_GOATS - goatsPlaced} left)`;
+            phaseBadge.textContent = `Phase 1 — Place Goats (${TOTAL_GOATS - goatsPlaced} remaining)`;
         } else {
-            phaseEl.textContent = 'Phase 2: Move Pieces';
+            phaseBadge.textContent = 'Phase 2 — Move Pieces';
         }
 
         document.getElementById('goats-placed').textContent = `${goatsPlaced} / ${TOTAL_GOATS}`;
-        document.getElementById('goats-captured').textContent = goatsCaptured;
-        document.getElementById('tigers-trapped').textContent = countTrappedTigers();
+        document.getElementById('goats-captured').textContent = `${goatsCaptured} / ${GOATS_TO_WIN}`;
+        document.getElementById('tigers-trapped').textContent = `${countTrappedTigers()} / 4`;
+
+        // Goat reserve pips
+        const reserve = document.getElementById('goat-reserve');
+        let pipsHTML = '';
+        for (let i = 0; i < TOTAL_GOATS; i++) {
+            pipsHTML += `<div class="goat-pip${i < goatsPlaced ? ' used' : ''}"></div>`;
+        }
+        reserve.innerHTML = pipsHTML;
+
+        // Capture tray
+        const tray = document.getElementById('capture-tray');
+        let trayHTML = '';
+        for (let i = 0; i < goatsCaptured; i++) {
+            trayHTML += '<span class="capture-skull">💀</span>';
+        }
+        tray.innerHTML = trayHTML;
+
+        // Undo button
+        document.getElementById('btn-undo').disabled = stateHistory.length === 0 || gameOver;
+    }
+
+    function updateHistory() {
+        const scroll = document.getElementById('history-scroll');
+        if (moveHistory.length === 0) {
+            scroll.innerHTML = '<div class="history-empty">No moves yet</div>';
+            return;
+        }
+        let html = '';
+        for (const m of moveHistory) {
+            html += `<div class="history-item">
+                <span class="history-num">${m.num}</span>
+                <span class="history-icon">${m.type === 'tiger' ? '🐅' : '🐐'}</span>
+                <span class="history-text${m.capture ? ' history-capture' : ''}">${m.text}</span>
+            </div>`;
+        }
+        scroll.innerHTML = html;
+        scroll.scrollTop = scroll.scrollHeight;
     }
 
     function restartGame() {
         initGame();
     }
 
-    // ===== EVENT HANDLING =====
+    // ── Events ──
 
     canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const scaleX = boardPixelSize / rect.width;
+        const scaleY = boardPixelSize / rect.height;
         const px = (e.clientX - rect.left) * scaleX;
         const py = (e.clientY - rect.top) * scaleY;
         handleClick(px, py);
     });
 
-    // Handle window resize
+    // Touch support
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.changedTouches[0];
+        const scaleX = boardPixelSize / rect.width;
+        const scaleY = boardPixelSize / rect.height;
+        const px = (touch.clientX - rect.left) * scaleX;
+        const py = (touch.clientY - rect.top) * scaleY;
+        handleClick(px, py);
+    }, { passive: false });
+
     window.addEventListener('resize', () => {
         initLayout();
+        resizeConfetti();
         drawBoard();
     });
 
-    // ===== INIT =====
+    // ── Init ──
     initLayout();
+    resizeConfetti();
     initGame();
+
+    // Build initial goat reserve pips
+    updateUI();
     </script>
 </body>
 </html>
