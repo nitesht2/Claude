@@ -59,13 +59,14 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: var(--text-primary);
+            line-height: 1.5;
         }
 
         header {
@@ -111,7 +112,7 @@
             border: 2px solid var(--panel-border);
             border-radius: 16px;
             padding: 24px 20px;
-            width: 140px;
+            width: 160px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
@@ -224,12 +225,19 @@
 
         .turn-indicator {
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 12px;
             border-radius: 10px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 1rem;
             transition: all 0.3s;
+        }
+        .turn-indicator.your-turn {
+            animation: turn-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes turn-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+            50% { box-shadow: 0 0 12px 4px rgba(255,215,0,0.3); }
         }
         .turn-tiger {
             background: rgba(233, 69, 96, 0.2);
@@ -256,6 +264,9 @@
             position: relative;
             width: 420px;
             height: 420px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.06);
         }
         #board-canvas {
             position: absolute;
@@ -408,7 +419,7 @@
             font-size: 0.78rem;
             color: var(--text-secondary);
         }
-        .stats-bar span { white-space: nowrap; }
+        .stats-bar span { white-space: nowrap; letter-spacing: 0.02em; }
         .stats-bar .val { color: #fff; font-weight: bold; }
 
         /* ===== WIN OVERLAY ===== */
@@ -449,19 +460,21 @@
         .ai-thinking {
             display: none;
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 12px;
             border-radius: 8px;
             font-size: 0.85rem;
             background: rgba(255,165,0,0.15);
             border: 1px solid rgba(255,165,0,0.3);
             color: #ffb347;
-            animation: think-pulse 1.2s infinite;
         }
-        .ai-thinking.show { display: block; }
-        @keyframes think-pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
+        .ai-thinking.show { display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .ai-thinking .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ffb347; animation: dot-bounce 1.2s infinite; }
+        .ai-thinking .dot:nth-child(2) { animation-delay: 0.2s; }
+        .ai-thinking .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
         }
 
         /* ===== REPLAY CONTROLS ===== */
@@ -502,10 +515,19 @@
             .right-panel { flex-direction: row; flex-wrap: wrap; }
             .rules-panel, .move-history-panel { flex: 1; min-width: 180px; }
         }
+        @media (max-width: 600px) {
+            .stats-bar { flex-wrap: wrap; gap: 8px 16px; }
+            .toolbar { flex-wrap: wrap; justify-content: center; }
+            #rules-content { display: none; }
+            .mode-card { width: 130px; padding: 18px 14px; }
+            .mode-card .icon { font-size: 2rem; }
+        }
         @media (max-width: 460px) {
             #board-container { width: 340px; height: 340px; }
             header h1 { font-size: 1.6rem; }
             .info-panel, .right-panel { width: 340px; }
+            .btn { min-height: 44px; }
+            .diff-btn, .side-btn { min-height: 44px; }
         }
     </style>
 </head>
@@ -606,7 +628,7 @@
         <div class="info-panel">
             <div id="turn-indicator" class="turn-indicator turn-goat">Goat's Turn</div>
             <div id="phase-indicator" class="phase-indicator">Phase 1: Place Goats</div>
-            <div class="ai-thinking" id="ai-thinking">AI is thinking...</div>
+            <div class="ai-thinking" id="ai-thinking">AI thinking<span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
             <h3>Game Status</h3>
             <div class="stat">
                 <span class="stat-label">Goats Placed</span>
@@ -645,8 +667,8 @@
 
         <div class="right-panel">
             <div class="rules-panel">
-                <h3>How to Play</h3>
-                <ul>
+                <h3 onclick="toggleRules()" style="cursor:pointer; user-select:none;">How to Play <span id="rules-toggle" style="float:right; font-size:0.8rem; opacity:0.6;">&#9660;</span></h3>
+                <ul id="rules-content">
                     <li><span class="tiger-text">4 Tigers</span> start at the corners</li>
                     <li><span class="goat-text">20 Goats</span> are placed one per turn</li>
                     <li>After all goats placed, both sides move</li>
@@ -665,9 +687,12 @@
     <!-- Win Overlay -->
     <div class="message-overlay" id="message-overlay">
         <div class="message-box">
+            <div id="win-piece-icon" style="font-size:3rem; margin-bottom:8px;"></div>
             <h2 id="message-title">Game Over</h2>
             <p id="message-text">Someone wins!</p>
+            <p id="elo-change" style="display:none; font-size:0.9rem; font-weight:bold; margin-bottom:12px;"></p>
             <button class="btn btn-restart" onclick="restartGame()">Play Again</button>
+            <button class="btn btn-menu" id="rematch-btn" onclick="requestRematch()" style="display:none; background:rgba(88,166,255,0.2); border-color:rgba(88,166,255,0.4); color:#58a6ff;">Rematch</button>
             <button class="btn btn-menu" onclick="startReplay()" style="background:rgba(255,165,0,0.2); border-color:rgba(255,165,0,0.4); color:#ffb347;">Replay</button>
             <button class="btn btn-menu" onclick="backToMenu()" style="background:rgba(255,255,255,0.1);">Menu</button>
         </div>
@@ -754,6 +779,29 @@
     function soundSelect() { playTone(800, 0.06, 'sine', 0.08); }
     function soundWin() { [0, 150, 300, 450].forEach((d, i) => setTimeout(() => playTone(400 + i * 100, 0.3, 'sine', 0.12), d)); }
     function soundUndo() { playTone(300, 0.1, 'triangle', 0.08); }
+    function soundYourTurn() {
+        playTone(523, 0.15, 'sine', 0.12);
+        setTimeout(() => playTone(659, 0.15, 'sine', 0.12), 150);
+        setTimeout(() => playTone(784, 0.2, 'sine', 0.12), 300);
+    }
+
+    function notifyYourTurn() {
+        soundYourTurn();
+        // Browser notification for background tab
+        if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification('Bagh Chal', { body: "It's your turn!", icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="%23e94560"/><text x="16" y="22" text-anchor="middle" font-size="20">!</text></svg>') });
+        }
+        // Flash title when tab is hidden
+        if (document.hidden) {
+            const origTitle = document.title;
+            const flashInterval = setInterval(() => {
+                document.title = document.title === origTitle ? "Your Turn!" : origTitle;
+            }, 1000);
+            const handler = () => { clearInterval(flashInterval); document.title = origTitle; };
+            document.addEventListener('visibilitychange', handler, { once: true });
+            setTimeout(() => { clearInterval(flashInterval); document.title = origTitle; }, 30000);
+        }
+    }
 
     function toggleSound() {
         soundEnabled = !soundEnabled;
@@ -814,6 +862,129 @@
     function changeSkin(skin) {
         currentSkin = skin;
         drawBoard();
+    }
+
+    // ===== PIECE SVG IMAGES =====
+    // Detailed animal face SVGs rendered as data URI images for cross-platform consistency
+
+    function buildTigerSVG(colors) {
+        const c = colors || { body: '#e8922d', bodyDark: '#c06a10', stripe: '#2a1500', ear: '#d97e1a', earInner: '#ffb366', eye: '#4a0', eyePupil: '#111', nose: '#3a1a00', whisker: '#555', muzzle: '#ffe0b0' };
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><radialGradient id="tg" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient></defs>
+<circle cx="32" cy="34" r="28" fill="url(#tg)"/>
+<ellipse cx="18" cy="10" rx="10" ry="12" fill="${c.ear}"/>
+<ellipse cx="46" cy="10" rx="10" ry="12" fill="${c.ear}"/>
+<ellipse cx="18" cy="11" rx="6" ry="7" fill="${c.earInner}"/>
+<ellipse cx="46" cy="11" rx="6" ry="7" fill="${c.earInner}"/>
+<circle cx="32" cy="34" r="26" fill="none"/>
+<path d="M20 18 Q18 28 16 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M24 16 Q23 26 21 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M44 18 Q46 28 48 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M40 16 Q41 26 43 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M28 14 Q32 12 36 14" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M15 28 Q12 30 10 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M49 28 Q52 30 54 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<ellipse cx="32" cy="38" rx="14" ry="11" fill="${c.muzzle}" opacity="0.85"/>
+<ellipse cx="22" cy="30" rx="5.5" ry="5" fill="white"/>
+<ellipse cx="42" cy="30" rx="5.5" ry="5" fill="white"/>
+<ellipse cx="23" cy="30" rx="3" ry="3.5" fill="${c.eye}"/>
+<ellipse cx="43" cy="30" rx="3" ry="3.5" fill="${c.eye}"/>
+<ellipse cx="23.5" cy="29.5" rx="1.5" ry="2" fill="${c.eyePupil}"/>
+<ellipse cx="43.5" cy="29.5" rx="1.5" ry="2" fill="${c.eyePupil}"/>
+<circle cx="22" cy="28.5" r="1.2" fill="white" opacity="0.7"/>
+<circle cx="42" cy="28.5" r="1.2" fill="white" opacity="0.7"/>
+<ellipse cx="32" cy="36" rx="4" ry="2.5" fill="${c.nose}"/>
+<ellipse cx="32" cy="36.5" rx="2.5" ry="1" fill="#5a3a20" opacity="0.4"/>
+<path d="M32 38.5 Q30 42 27 44" stroke="${c.whisker}" stroke-width="0.8" fill="none"/>
+<path d="M32 38.5 Q34 42 37 44" stroke="${c.whisker}" stroke-width="0.8" fill="none"/>
+<path d="M32 39 L32 42" stroke="#a06030" stroke-width="0.8" fill="none"/>
+<path d="M15 34 Q10 33 5 32" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M15 36 Q10 37 5 38" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M49 34 Q54 33 59 32" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M49 36 Q54 37 59 38" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M28 44 Q32 47 36 44" stroke="#a06030" stroke-width="0.8" fill="none"/>
+</svg>`;
+    }
+
+    function buildGoatSVG(colors) {
+        const c = colors || { body: '#f0ece4', bodyDark: '#c8c0b0', horn: '#665544', hornLight: '#998877', ear: '#e8d8c8', earInner: '#f5c4c4', eye: '#443322', eyeIris: '#886633', nose: '#8a6050', beard: '#c8b8a0' };
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><radialGradient id="gg" cx="50%" cy="45%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient></defs>
+<path d="M22 6 Q20 0 17 2 Q19 8 20 14" fill="${c.horn}" stroke="${c.hornLight}" stroke-width="0.5"/>
+<path d="M42 6 Q44 0 47 2 Q45 8 44 14" fill="${c.horn}" stroke="${c.hornLight}" stroke-width="0.5"/>
+<path d="M22 6 Q21 3 18.5 3" stroke="${c.hornLight}" stroke-width="1" fill="none" stroke-linecap="round"/>
+<path d="M42 6 Q43 3 45.5 3" stroke="${c.hornLight}" stroke-width="1" fill="none" stroke-linecap="round"/>
+<circle cx="32" cy="36" r="26" fill="url(#gg)"/>
+<ellipse cx="14" cy="26" rx="9" ry="6" fill="${c.ear}" transform="rotate(-20 14 26)"/>
+<ellipse cx="50" cy="26" rx="9" ry="6" fill="${c.ear}" transform="rotate(20 50 26)"/>
+<ellipse cx="14" cy="26" rx="5" ry="3.5" fill="${c.earInner}" transform="rotate(-20 14 26)"/>
+<ellipse cx="50" cy="26" rx="5" ry="3.5" fill="${c.earInner}" transform="rotate(20 50 26)"/>
+<ellipse cx="23" cy="32" rx="5" ry="4.5" fill="white"/>
+<ellipse cx="41" cy="32" rx="5" ry="4.5" fill="white"/>
+<ellipse cx="23.5" cy="32" rx="3" ry="3.2" fill="${c.eyeIris}"/>
+<ellipse cx="41.5" cy="32" rx="3" ry="3.2" fill="${c.eyeIris}"/>
+<rect x="22" y="31" width="3" height="2.5" rx="0.5" fill="${c.eye}"/>
+<rect x="40" y="31" width="3" height="2.5" rx="0.5" fill="${c.eye}"/>
+<circle cx="22.5" cy="30.5" r="1" fill="white" opacity="0.6"/>
+<circle cx="40.5" cy="30.5" r="1" fill="white" opacity="0.6"/>
+<ellipse cx="32" cy="41" rx="8" ry="6" fill="${c.body}" opacity="0.7"/>
+<ellipse cx="32" cy="39" rx="3.5" ry="2.2" fill="${c.nose}"/>
+<ellipse cx="30" cy="42" rx="2" ry="1.2" fill="#bb9988" opacity="0.5"/>
+<ellipse cx="34" cy="42" rx="2" ry="1.2" fill="#bb9988" opacity="0.5"/>
+<path d="M30.5 42.5 Q32 44.5 33.5 42.5" stroke="#aa8877" stroke-width="0.8" fill="none"/>
+<path d="M30 50 Q32 56 34 50" fill="${c.beard}" opacity="0.6"/>
+<path d="M28 49 Q30 54 32 50" fill="${c.beard}" opacity="0.4"/>
+<path d="M32 50 Q34 54 36 49" fill="${c.beard}" opacity="0.4"/>
+</svg>`;
+    }
+
+    // Build and cache piece images
+    const PIECE_SVGS = {};
+    const pieceImages = {};
+    let piecesLoaded = false;
+
+    function initPieceSVGs() {
+        PIECE_SVGS.classic = {
+            tiger: buildTigerSVG(),
+            goat: buildGoatSVG()
+        };
+        PIECE_SVGS.neon = {
+            tiger: buildTigerSVG({ body: '#ff4444', bodyDark: '#cc0000', stripe: '#440000', ear: '#ff3333', earInner: '#ff8888', eye: '#00ff66', eyePupil: '#003300', nose: '#880000', whisker: '#ff6666', muzzle: '#ffaaaa' }),
+            goat: buildGoatSVG({ body: '#44ff88', bodyDark: '#00aa44', horn: '#00ff66', hornLight: '#88ffaa', ear: '#33dd77', earInner: '#88ffbb', eye: '#003300', eyeIris: '#00ff44', nose: '#008833', beard: '#33cc66' })
+        };
+        PIECE_SVGS.nepal = {
+            tiger: buildTigerSVG({ body: '#ff6633', bodyDark: '#cc3300', stripe: '#330000', ear: '#ee5522', earInner: '#ffaa77', eye: '#ffcc00', eyePupil: '#111', nose: '#440000', whisker: '#884422', muzzle: '#ffcc99' }),
+            goat: buildGoatSVG()
+        };
+        // wood and marble use classic
+        PIECE_SVGS.wood = PIECE_SVGS.classic;
+        PIECE_SVGS.marble = PIECE_SVGS.classic;
+    }
+
+    function preloadPieceImages() {
+        initPieceSVGs();
+        let remaining = 0;
+        for (const skin of Object.keys(PIECE_SVGS)) {
+            if (PIECE_SVGS[skin] === PIECE_SVGS.classic && skin !== 'classic') continue; // skip aliases
+            for (const type of ['tiger', 'goat']) {
+                remaining++;
+                const img = new Image();
+                const svgStr = PIECE_SVGS[skin][type];
+                img.onload = () => { if (--remaining === 0) piecesLoaded = true; };
+                img.onerror = () => { remaining--; };
+                img.src = 'data:image/svg+xml,' + encodeURIComponent(svgStr);
+                if (!pieceImages[skin]) pieceImages[skin] = {};
+                pieceImages[skin][type] = img;
+            }
+        }
+        // Copy aliases
+        pieceImages.wood = pieceImages.classic;
+        pieceImages.marble = pieceImages.classic;
+    }
+
+    function getPieceImage(type) {
+        const skinKey = pieceImages[currentSkin] ? currentSkin : 'classic';
+        return pieceImages[skinKey]?.[type];
     }
 
     // ===== STATISTICS (localStorage) =====
@@ -901,7 +1072,7 @@
         boardPixelSize = container.offsetWidth;
         canvas.width = boardPixelSize;
         canvas.height = boardPixelSize;
-        padding = 40;
+        padding = 50;
         cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
     }
 
@@ -1161,37 +1332,50 @@
     }
 
     function drawPiece(x, y, type, isSelected) {
-        const skin = SKIN_CONFIG[currentSkin] || SKIN_CONFIG.classic;
-        const radius = isSelected ? 20 : 18;
+        const radius = isSelected ? 22 : 19;
+        const imgSize = radius * 2.2;
 
         // Shadow
         ctx.beginPath();
         ctx.arc(x + 2, y + 3, radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.fill();
 
-        // Main circle — gradient or flat based on skin
-        if (skin.pieceStyle === 'flat') {
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = type === 'tiger' ? '#c0392b' : '#2e7d32';
-            ctx.fill();
+        // Base circle (subtle colored pedestal behind the image)
+        const grad = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, radius);
+        if (type === 'tiger') {
+            grad.addColorStop(0, currentSkin === 'neon' ? '#552200' : '#ff9a6c');
+            grad.addColorStop(1, currentSkin === 'neon' ? '#331100' : '#a04020');
         } else {
-            const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, radius);
-            if (type === 'tiger') {
-                grad.addColorStop(0, currentSkin === 'neon' ? '#ff4444' : '#ff8a65');
-                grad.addColorStop(1, currentSkin === 'neon' ? '#aa0000' : '#c0392b');
-            } else {
-                grad.addColorStop(0, currentSkin === 'neon' ? '#44ff88' : '#a5d6a7');
-                grad.addColorStop(1, currentSkin === 'neon' ? '#008833' : '#2e7d32');
-            }
+            grad.addColorStop(0, currentSkin === 'neon' ? '#003322' : '#c8e6c9');
+            grad.addColorStop(1, currentSkin === 'neon' ? '#001a11' : '#2e5d32');
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Draw SVG image clipped to circle
+        const img = getPieceImage(type);
+        if (img && img.complete && img.naturalWidth > 0) {
+            ctx.save();
             ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = grad;
-            ctx.fill();
+            ctx.arc(x, y, radius - 1, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(img, x - imgSize / 2, y - imgSize / 2, imgSize, imgSize);
+            ctx.restore();
+        } else {
+            // Fallback: emoji (for older browsers or if images fail)
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${radius}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(type === 'tiger' ? '\u{1F405}' : '\u{1F410}', x, y + 1);
         }
 
-        // Border
+        // Border ring
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
         if (currentSkin === 'neon') {
             ctx.shadowColor = type === 'tiger' ? '#ff0000' : '#00ff66';
             ctx.shadowBlur = isSelected ? 15 : 8;
@@ -1205,18 +1389,11 @@
         // Selection glow
         if (isSelected) {
             ctx.beginPath();
-            ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
+            ctx.arc(x, y, radius + 6, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
             ctx.lineWidth = 3;
             ctx.stroke();
         }
-
-        // Emoji
-        ctx.fillStyle = '#fff';
-        ctx.font = `bold ${radius}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(type === 'tiger' ? '\u{1F405}' : '\u{1F410}', x, y + 1);
     }
 
     // ===== ANIMATION =====
@@ -1421,8 +1598,8 @@
             el.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.78rem;">No moves yet</span>';
             return;
         }
-        el.innerHTML = moveDescriptions.map(m =>
-            `<div class="move-entry"><span class="move-num">${m.num}.</span> <span class="move-${m.side}">${m.text}</span></div>`
+        el.innerHTML = moveDescriptions.map((m, i) =>
+            `<div class="move-entry" style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent'}; padding:3px 6px; border-radius:4px;"><span class="move-num">${m.num}.</span> <span style="margin-right:3px;">${m.side === 'tiger' ? '\u{1F405}' : '\u{1F410}'}</span><span class="move-${m.side}">${m.text}</span></div>`
         ).join('');
         el.scrollTop = el.scrollHeight;
     }
@@ -1560,6 +1737,11 @@
         updateUI();
         drawBoard();
 
+        // Notify player it's their turn (online & AI modes)
+        if ((gameMode === 'online' || gameMode === 'ai') && currentTurn === playerSide) {
+            notifyYourTurn();
+        }
+
         if (gameMode === 'ai' && currentTurn !== playerSide && !gameOver) {
             scheduleAIMove();
         }
@@ -1569,13 +1751,45 @@
         const overlay = document.getElementById('message-overlay');
         const title = document.getElementById('message-title');
         const text = document.getElementById('message-text');
+        const pieceIcon = document.getElementById('win-piece-icon');
+        const eloEl = document.getElementById('elo-change');
+        const rematchBtn = document.getElementById('rematch-btn');
+
         if (winner === 'tiger') {
-            title.textContent = '\u{1F405} Tigers Win!';
+            title.textContent = 'Tigers Win!';
             text.textContent = 'The tigers captured 5 goats!';
         } else {
-            title.textContent = '\u{1F410} Goats Win!';
+            title.textContent = 'Goats Win!';
             text.textContent = 'All tigers are trapped!';
         }
+
+        // Show piece SVG icon in win overlay
+        const img = getPieceImage(winner);
+        if (img && img.complete) {
+            pieceIcon.innerHTML = '';
+            const clone = img.cloneNode();
+            clone.style.width = '64px';
+            clone.style.height = '64px';
+            pieceIcon.appendChild(clone);
+        } else {
+            pieceIcon.textContent = winner === 'tiger' ? '\u{1F405}' : '\u{1F410}';
+        }
+
+        // Show ELO change in AI mode
+        if (gameMode === 'ai') {
+            const playerWon = (winner === playerSide);
+            const aiElo = AI_ELO[aiDifficulty] || 1100;
+            const change = calcEloChange(stats.elo, aiElo, playerWon);
+            eloEl.style.display = 'block';
+            eloEl.textContent = change >= 0 ? `+${change} ELO` : `${change} ELO`;
+            eloEl.style.color = change >= 0 ? '#4CAF50' : '#e94560';
+        } else {
+            eloEl.style.display = 'none';
+        }
+
+        // Show rematch button in online mode
+        rematchBtn.style.display = gameMode === 'online' ? 'inline-block' : 'none';
+
         overlay.classList.add('show');
         effectWin(); // confetti!
     }
@@ -1588,8 +1802,9 @@
             turnEl.textContent = 'Game Over';
             turnEl.className = 'turn-indicator turn-tiger';
         } else {
-            turnEl.textContent = currentTurn === 'goat' ? "Goat's Turn \u{1F410}" : "Tiger's Turn \u{1F405}";
-            turnEl.className = `turn-indicator ${currentTurn === 'goat' ? 'turn-goat' : 'turn-tiger'}`;
+            turnEl.textContent = currentTurn === 'goat' ? "Goat's Turn" : "Tiger's Turn";
+            const isYourTurn = (gameMode === 'human') || (currentTurn === playerSide);
+            turnEl.className = `turn-indicator ${currentTurn === 'goat' ? 'turn-goat' : 'turn-tiger'}${isYourTurn ? ' your-turn' : ''}`;
         }
 
         const phase = getPhase();
@@ -2050,6 +2265,11 @@
 
             // Send role confirmation
             peerConn.send({ type: 'start', role: onlineRole });
+
+            // Request notification permission for turn alerts
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
         });
 
         peerConn.on('data', (data) => {
@@ -2057,6 +2277,11 @@
                 // Game already started
             } else if (data.type === 'move') {
                 applyRemoteMove(data.move);
+            } else if (data.type === 'rematch-request') {
+                // Opponent wants rematch — auto-accept and swap sides
+                acceptRematch();
+            } else if (data.type === 'rematch-accept') {
+                startRematchGame();
             }
         });
 
@@ -2106,6 +2331,33 @@
         const prev = el.textContent;
         el.textContent = 'Code copied!';
         setTimeout(() => { el.textContent = prev; }, 1500);
+    }
+
+    function requestRematch() {
+        if (peerConn && peerConn.open) {
+            peerConn.send({ type: 'rematch-request' });
+            const btn = document.getElementById('rematch-btn');
+            btn.textContent = 'Waiting...';
+            btn.disabled = true;
+        }
+    }
+
+    function acceptRematch() {
+        if (peerConn && peerConn.open) {
+            peerConn.send({ type: 'rematch-accept' });
+        }
+        startRematchGame();
+    }
+
+    function startRematchGame() {
+        // Swap sides
+        onlineRole = onlineRole === 'goat' ? 'tiger' : 'goat';
+        playerSide = onlineRole;
+        document.getElementById('message-overlay').classList.remove('show');
+        const btn = document.getElementById('rematch-btn');
+        btn.textContent = 'Rematch';
+        btn.disabled = false;
+        initGame();
     }
 
     function cleanupPeer() {
@@ -2161,6 +2413,18 @@
         document.getElementById('online-create-info').style.display = 'none';
         document.getElementById('online-join-info').style.display = 'none';
         cleanupPeer();
+    }
+
+    function toggleRules() {
+        const content = document.getElementById('rules-content');
+        const toggle = document.getElementById('rules-toggle');
+        if (content.style.display === 'none') {
+            content.style.display = '';
+            toggle.innerHTML = '&#9660;';
+        } else {
+            content.style.display = 'none';
+            toggle.innerHTML = '&#9654;';
+        }
     }
 
     // ===== GAME REPLAY SYSTEM =====
@@ -2313,6 +2577,7 @@
     });
 
     // ===== INIT =====
+    preloadPieceImages();
     loadStats();
     </script>
 </body>
