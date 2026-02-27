@@ -58,10 +58,31 @@
             --grid-line: rgba(255,255,255,0.1);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
             min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* === ANIMATED BACKGROUND === */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(231,76,60,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 90%, rgba(67,160,71,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 50% 50%, rgba(240,192,64,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -69,6 +90,7 @@
             line-height: 1.5;
         }
 
+        /* === HEADER === */
         header {
             text-align: center;
             padding: 16px 20px 8px;
@@ -432,6 +454,8 @@
             z-index: 100;
             justify-content: center;
             align-items: center;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
         }
         .message-overlay.show { display: flex; }
         .message-box {
@@ -698,11 +722,11 @@
         </div>
     </div>
 
-    <script>
-    // ============================================================
-    //  BAGH CHAL — Full Game Engine with AI, Themes, Stats, Undo
-    // ============================================================
+    <!-- Sound toggle -->
+    <button class="sound-toggle" id="sound-toggle" title="Toggle sound" onclick="toggleSound()">🔊</button>
 
+    <script>
+    // =====================================================
     const BOARD_SIZE = 5;
     const TOTAL_GOATS = 20;
     const GOATS_TO_WIN = 5;
@@ -1308,6 +1332,13 @@
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const key = posKey(r, c);
+                if (animPiece && key === animPiece.fromKey) continue;
+                if (animPiece && animPiece.captureKey && key === animPiece.captureKey) {
+                    // Draw captured piece fading out
+                    const alpha = 1 - animPiece.progress;
+                    drawPiece(r, c, 'goat', false, alpha, 1 - animPiece.progress * 0.5);
+                    continue;
+                }
                 const piece = board[key];
                 if (!piece) continue;
                 if (animating && animPiece && animPiece.skipKey === key) continue;
@@ -1445,6 +1476,7 @@
                 drawBoard();
                 callback();
             }
+            drawBoard();
         }
         requestAnimationFrame(frame);
     }
@@ -1794,9 +1826,11 @@
         effectWin(); // confetti!
     }
 
+    // ── UI Updates ──
+
     function updateUI() {
-        const turnEl = document.getElementById('turn-indicator');
-        const phaseEl = document.getElementById('phase-indicator');
+        const turnBox = document.getElementById('turn-box');
+        const phaseBadge = document.getElementById('phase-badge');
 
         if (gameOver) {
             turnEl.textContent = 'Game Over';
