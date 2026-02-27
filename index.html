@@ -868,109 +868,73 @@
     // Detailed animal face SVGs rendered as data URI images for cross-platform consistency
 
     function buildTigerSVG(colors) {
-        const c = colors || { body: '#e8922d', bodyDark: '#b56a10', stripe: '#1a0a00', ear: '#d97e1a', earInner: '#ffb366', eye: '#8aff00', eyePupil: '#111', nose: '#2a0a00', whisker: '#ddd', muzzle: '#ffe8c0', white: '#fff4e0', jawLine: '#c06a10' };
+        const c = colors || { body: '#e8922d', bodyDark: '#c06a10', stripe: '#2a1500', ear: '#d97e1a', earInner: '#ffb366', eye: '#4a0', eyePupil: '#111', nose: '#3a1a00', whisker: '#555', muzzle: '#ffe0b0' };
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs>
-<radialGradient id="tg" cx="50%" cy="38%" r="52%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient>
-</defs>
-<!-- Wide face shape - tigers have broad, muscular heads -->
-<ellipse cx="32" cy="34" rx="29" ry="27" fill="url(#tg)"/>
-<!-- Rounded ears - tigers have round ears, not pointed -->
-<circle cx="12" cy="12" r="10" fill="${c.ear}"/>
-<circle cx="52" cy="12" r="10" fill="${c.ear}"/>
-<circle cx="12" cy="12" r="6" fill="${c.earInner}"/>
-<circle cx="52" cy="12" r="6" fill="${c.earInner}"/>
-<!-- White patches inside ears and around face -->
-<ellipse cx="32" cy="42" rx="16" ry="14" fill="${c.muzzle}"/>
-<ellipse cx="24" cy="42" rx="8" ry="8" fill="${c.white}" opacity="0.5"/>
-<ellipse cx="40" cy="42" rx="8" ry="8" fill="${c.white}" opacity="0.5"/>
-<!-- BOLD black stripes - the #1 tiger identifier -->
-<path d="M14 16 L18 30" stroke="${c.stripe}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-<path d="M20 12 L22 26" stroke="${c.stripe}" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M50 16 L46 30" stroke="${c.stripe}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-<path d="M44 12 L42 26" stroke="${c.stripe}" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M26 10 L28 20" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M38 10 L36 20" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M8 26 L16 32" stroke="${c.stripe}" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M56 26 L48 32" stroke="${c.stripe}" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M10 36 L18 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M54 36 L46 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<!-- Forehead V-mark -->
-<path d="M28 16 L32 22 L36 16" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<!-- Eyes - fierce, angular -->
-<ellipse cx="22" cy="30" rx="6" ry="4.5" fill="white"/>
-<ellipse cx="42" cy="30" rx="6" ry="4.5" fill="white"/>
-<ellipse cx="23" cy="30" rx="4" ry="3.5" fill="${c.eye}"/>
-<ellipse cx="43" cy="30" rx="4" ry="3.5" fill="${c.eye}"/>
-<ellipse cx="23.5" cy="30" rx="2" ry="3" fill="${c.eyePupil}"/>
-<ellipse cx="43.5" cy="30" rx="2" ry="3" fill="${c.eyePupil}"/>
-<circle cx="22" cy="28.5" r="1.5" fill="white" opacity="0.8"/>
-<circle cx="42" cy="28.5" r="1.5" fill="white" opacity="0.8"/>
-<!-- Big pink/brown nose -->
-<path d="M28 38 L32 42 L36 38 Z" fill="${c.nose}"/>
-<ellipse cx="32" cy="39" rx="5" ry="3" fill="${c.nose}"/>
-<!-- Mouth / jaw line -->
-<path d="M32 42 L32 47" stroke="${c.jawLine}" stroke-width="1.5"/>
-<path d="M28 47 Q32 50 36 47" stroke="${c.jawLine}" stroke-width="1.2" fill="none"/>
-<!-- Whiskers - thick, prominent -->
-<line x1="18" y1="38" x2="3" y2="34" stroke="${c.whisker}" stroke-width="1.2" opacity="0.8"/>
-<line x1="18" y1="40" x2="3" y2="40" stroke="${c.whisker}" stroke-width="1.2" opacity="0.8"/>
-<line x1="18" y1="42" x2="3" y2="46" stroke="${c.whisker}" stroke-width="1.2" opacity="0.8"/>
-<line x1="46" y1="38" x2="61" y2="34" stroke="${c.whisker}" stroke-width="1.2" opacity="0.8"/>
-<line x1="46" y1="40" x2="61" y2="40" stroke="${c.whisker}" stroke-width="1.2" opacity="0.8"/>
-<line x1="46" y1="42" x2="61" y2="46" stroke="${c.whisker}" stroke-width="1.2" opacity="0.8"/>
-<!-- White chin -->
-<ellipse cx="32" cy="50" rx="10" ry="6" fill="${c.white}" opacity="0.6"/>
+<defs><radialGradient id="tg" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient></defs>
+<circle cx="32" cy="34" r="28" fill="url(#tg)"/>
+<ellipse cx="18" cy="10" rx="10" ry="12" fill="${c.ear}"/>
+<ellipse cx="46" cy="10" rx="10" ry="12" fill="${c.ear}"/>
+<ellipse cx="18" cy="11" rx="6" ry="7" fill="${c.earInner}"/>
+<ellipse cx="46" cy="11" rx="6" ry="7" fill="${c.earInner}"/>
+<circle cx="32" cy="34" r="26" fill="none"/>
+<path d="M20 18 Q18 28 16 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M24 16 Q23 26 21 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M44 18 Q46 28 48 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M40 16 Q41 26 43 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M28 14 Q32 12 36 14" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M15 28 Q12 30 10 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M49 28 Q52 30 54 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<ellipse cx="32" cy="38" rx="14" ry="11" fill="${c.muzzle}" opacity="0.85"/>
+<ellipse cx="22" cy="30" rx="5.5" ry="5" fill="white"/>
+<ellipse cx="42" cy="30" rx="5.5" ry="5" fill="white"/>
+<ellipse cx="23" cy="30" rx="3" ry="3.5" fill="${c.eye}"/>
+<ellipse cx="43" cy="30" rx="3" ry="3.5" fill="${c.eye}"/>
+<ellipse cx="23.5" cy="29.5" rx="1.5" ry="2" fill="${c.eyePupil}"/>
+<ellipse cx="43.5" cy="29.5" rx="1.5" ry="2" fill="${c.eyePupil}"/>
+<circle cx="22" cy="28.5" r="1.2" fill="white" opacity="0.7"/>
+<circle cx="42" cy="28.5" r="1.2" fill="white" opacity="0.7"/>
+<ellipse cx="32" cy="36" rx="4" ry="2.5" fill="${c.nose}"/>
+<ellipse cx="32" cy="36.5" rx="2.5" ry="1" fill="#5a3a20" opacity="0.4"/>
+<path d="M32 38.5 Q30 42 27 44" stroke="${c.whisker}" stroke-width="0.8" fill="none"/>
+<path d="M32 38.5 Q34 42 37 44" stroke="${c.whisker}" stroke-width="0.8" fill="none"/>
+<path d="M32 39 L32 42" stroke="#a06030" stroke-width="0.8" fill="none"/>
+<path d="M15 34 Q10 33 5 32" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M15 36 Q10 37 5 38" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M49 34 Q54 33 59 32" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M49 36 Q54 37 59 38" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
+<path d="M28 44 Q32 47 36 44" stroke="#a06030" stroke-width="0.8" fill="none"/>
 </svg>`;
     }
 
     function buildGoatSVG(colors) {
-        const c = colors || { body: '#f0ece4', bodyDark: '#c8c0b0', horn: '#554433', hornDark: '#332211', hornRidge: '#887766', ear: '#e8c8b8', earInner: '#f0a0a0', eye: '#332211', eyeIris: '#ccaa44', nose: '#a07060', beard: '#bba888', white: '#ffffff', snout: '#e8d0c0' };
+        const c = colors || { body: '#f0ece4', bodyDark: '#c8c0b0', horn: '#665544', hornLight: '#998877', ear: '#e8d8c8', earInner: '#f5c4c4', eye: '#443322', eyeIris: '#886633', nose: '#8a6050', beard: '#c8b8a0' };
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs>
-<radialGradient id="gg" cx="50%" cy="40%" r="52%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient>
-</defs>
-<!-- BIG curved horns - THE defining goat feature -->
-<path d="M22 22 Q18 8 12 2 Q8 0 6 4 Q8 10 14 18" fill="${c.horn}" stroke="${c.hornDark}" stroke-width="1"/>
-<path d="M42 22 Q46 8 52 2 Q56 0 58 4 Q56 10 50 18" fill="${c.horn}" stroke="${c.hornDark}" stroke-width="1"/>
-<!-- Horn ridges for texture -->
-<path d="M18 14 Q16 12 14 11" stroke="${c.hornRidge}" stroke-width="1.5" fill="none" opacity="0.6"/>
-<path d="M20 18 Q17 15 15 14" stroke="${c.hornRidge}" stroke-width="1.5" fill="none" opacity="0.6"/>
-<path d="M46 14 Q48 12 50 11" stroke="${c.hornRidge}" stroke-width="1.5" fill="none" opacity="0.6"/>
-<path d="M44 18 Q47 15 49 14" stroke="${c.hornRidge}" stroke-width="1.5" fill="none" opacity="0.6"/>
-<!-- Elongated face - goats have long, narrow faces unlike round cats -->
-<ellipse cx="32" cy="34" rx="22" ry="25" fill="url(#gg)"/>
-<!-- Long snout/muzzle area - much more prominent than cat -->
-<ellipse cx="32" cy="44" rx="13" ry="12" fill="${c.snout}"/>
-<!-- Droopy ears sticking out sideways - very goat-like -->
-<ellipse cx="6" cy="26" rx="10" ry="5" fill="${c.ear}" transform="rotate(-25 6 26)"/>
-<ellipse cx="58" cy="26" rx="10" ry="5" fill="${c.ear}" transform="rotate(25 58 26)"/>
-<ellipse cx="6" cy="26" rx="6" ry="3" fill="${c.earInner}" transform="rotate(-25 6 26)"/>
-<ellipse cx="58" cy="26" rx="6" ry="3" fill="${c.earInner}" transform="rotate(25 58 26)"/>
-<!-- Eyes - goats have distinctive horizontal rectangular pupils -->
-<ellipse cx="23" cy="30" rx="5" ry="4" fill="${c.white}"/>
-<ellipse cx="41" cy="30" rx="5" ry="4" fill="${c.white}"/>
-<ellipse cx="23" cy="30" rx="3.5" ry="3.5" fill="${c.eyeIris}"/>
-<ellipse cx="41" cy="30" rx="3.5" ry="3.5" fill="${c.eyeIris}"/>
-<!-- HORIZONTAL rectangular pupils - unique to goats! -->
-<rect x="21" y="29" width="5" height="2.5" rx="0.8" fill="${c.eye}"/>
-<rect x="39" y="29" width="5" height="2.5" rx="0.8" fill="${c.eye}"/>
-<circle cx="22" cy="28.5" r="1" fill="white" opacity="0.7"/>
-<circle cx="40" cy="28.5" r="1" fill="white" opacity="0.7"/>
-<!-- Nostrils - goats have prominent nostrils on a wide nose -->
-<ellipse cx="32" cy="42" rx="6" ry="4" fill="${c.nose}"/>
-<ellipse cx="29" cy="42" rx="2" ry="1.5" fill="${c.eye}" opacity="0.5"/>
-<ellipse cx="35" cy="42" rx="2" ry="1.5" fill="${c.eye}" opacity="0.5"/>
-<!-- Mouth -->
-<path d="M32 46 L32 49" stroke="#99776a" stroke-width="1.2"/>
-<path d="M28 49 Q32 52 36 49" stroke="#99776a" stroke-width="1" fill="none"/>
-<!-- BEARD - another key goat identifier -->
-<path d="M28 52 Q26 58 24 62" stroke="${c.beard}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M32 53 Q32 59 31 63" stroke="${c.beard}" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M36 52 Q38 58 40 62" stroke="${c.beard}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<!-- Fur tuft between horns -->
-<ellipse cx="32" cy="16" rx="8" ry="5" fill="${c.body}"/>
-<path d="M28 14 Q30 10 32 14 Q34 10 36 14" fill="${c.bodyDark}" opacity="0.4"/>
+<defs><radialGradient id="gg" cx="50%" cy="45%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient></defs>
+<path d="M22 6 Q20 0 17 2 Q19 8 20 14" fill="${c.horn}" stroke="${c.hornLight}" stroke-width="0.5"/>
+<path d="M42 6 Q44 0 47 2 Q45 8 44 14" fill="${c.horn}" stroke="${c.hornLight}" stroke-width="0.5"/>
+<path d="M22 6 Q21 3 18.5 3" stroke="${c.hornLight}" stroke-width="1" fill="none" stroke-linecap="round"/>
+<path d="M42 6 Q43 3 45.5 3" stroke="${c.hornLight}" stroke-width="1" fill="none" stroke-linecap="round"/>
+<circle cx="32" cy="36" r="26" fill="url(#gg)"/>
+<ellipse cx="14" cy="26" rx="9" ry="6" fill="${c.ear}" transform="rotate(-20 14 26)"/>
+<ellipse cx="50" cy="26" rx="9" ry="6" fill="${c.ear}" transform="rotate(20 50 26)"/>
+<ellipse cx="14" cy="26" rx="5" ry="3.5" fill="${c.earInner}" transform="rotate(-20 14 26)"/>
+<ellipse cx="50" cy="26" rx="5" ry="3.5" fill="${c.earInner}" transform="rotate(20 50 26)"/>
+<ellipse cx="23" cy="32" rx="5" ry="4.5" fill="white"/>
+<ellipse cx="41" cy="32" rx="5" ry="4.5" fill="white"/>
+<ellipse cx="23.5" cy="32" rx="3" ry="3.2" fill="${c.eyeIris}"/>
+<ellipse cx="41.5" cy="32" rx="3" ry="3.2" fill="${c.eyeIris}"/>
+<rect x="22" y="31" width="3" height="2.5" rx="0.5" fill="${c.eye}"/>
+<rect x="40" y="31" width="3" height="2.5" rx="0.5" fill="${c.eye}"/>
+<circle cx="22.5" cy="30.5" r="1" fill="white" opacity="0.6"/>
+<circle cx="40.5" cy="30.5" r="1" fill="white" opacity="0.6"/>
+<ellipse cx="32" cy="41" rx="8" ry="6" fill="${c.body}" opacity="0.7"/>
+<ellipse cx="32" cy="39" rx="3.5" ry="2.2" fill="${c.nose}"/>
+<ellipse cx="30" cy="42" rx="2" ry="1.2" fill="#bb9988" opacity="0.5"/>
+<ellipse cx="34" cy="42" rx="2" ry="1.2" fill="#bb9988" opacity="0.5"/>
+<path d="M30.5 42.5 Q32 44.5 33.5 42.5" stroke="#aa8877" stroke-width="0.8" fill="none"/>
+<path d="M30 50 Q32 56 34 50" fill="${c.beard}" opacity="0.6"/>
+<path d="M28 49 Q30 54 32 50" fill="${c.beard}" opacity="0.4"/>
+<path d="M32 50 Q34 54 36 49" fill="${c.beard}" opacity="0.4"/>
 </svg>`;
     }
 
@@ -985,11 +949,11 @@
             goat: buildGoatSVG()
         };
         PIECE_SVGS.neon = {
-            tiger: buildTigerSVG({ body: '#ff4444', bodyDark: '#cc0000', stripe: '#440000', ear: '#ff3333', earInner: '#ff8888', eye: '#00ff66', eyePupil: '#003300', nose: '#880000', whisker: '#ff6666', muzzle: '#ffaaaa', white: '#ffcccc', jawLine: '#cc0000' }),
-            goat: buildGoatSVG({ body: '#44ff88', bodyDark: '#00aa44', horn: '#00ff66', hornDark: '#008833', hornRidge: '#88ffaa', ear: '#33dd77', earInner: '#88ffbb', eye: '#003300', eyeIris: '#00ff44', nose: '#008833', beard: '#33cc66', white: '#ccffdd', snout: '#22cc66' })
+            tiger: buildTigerSVG({ body: '#ff4444', bodyDark: '#cc0000', stripe: '#440000', ear: '#ff3333', earInner: '#ff8888', eye: '#00ff66', eyePupil: '#003300', nose: '#880000', whisker: '#ff6666', muzzle: '#ffaaaa' }),
+            goat: buildGoatSVG({ body: '#44ff88', bodyDark: '#00aa44', horn: '#00ff66', hornLight: '#88ffaa', ear: '#33dd77', earInner: '#88ffbb', eye: '#003300', eyeIris: '#00ff44', nose: '#008833', beard: '#33cc66' })
         };
         PIECE_SVGS.nepal = {
-            tiger: buildTigerSVG({ body: '#ff6633', bodyDark: '#cc3300', stripe: '#330000', ear: '#ee5522', earInner: '#ffaa77', eye: '#ffcc00', eyePupil: '#111', nose: '#440000', whisker: '#ffddaa', muzzle: '#ffcc99', white: '#ffe8cc', jawLine: '#cc3300' }),
+            tiger: buildTigerSVG({ body: '#ff6633', bodyDark: '#cc3300', stripe: '#330000', ear: '#ee5522', earInner: '#ffaa77', eye: '#ffcc00', eyePupil: '#111', nose: '#440000', whisker: '#884422', muzzle: '#ffcc99' }),
             goat: buildGoatSVG()
         };
         // wood and marble use classic
