@@ -58,8 +58,6 @@
             --grid-line: rgba(255,255,255,0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
@@ -213,11 +211,13 @@
         /* ===== GAME AREA ===== */
         .game-container {
             display: none;
-            flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
-            gap: 24px;
-            padding: 8px 20px 20px;
+            gap: 20px;
+            padding: 8px 16px 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .game-container.show { display: flex; }
 
@@ -226,8 +226,14 @@
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 20px;
-            width: 220px;
+            width: 240px;
+            min-width: 200px;
+            flex-shrink: 0;
             backdrop-filter: blur(10px);
+            position: sticky;
+            top: 8px;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
         }
         .info-panel h3 {
             color: var(--accent);
@@ -282,10 +288,19 @@
             color: #ccc;
         }
 
+        .board-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
         #board-container {
             position: relative;
-            width: 420px;
-            height: 420px;
+            width: min(calc(100vh - 180px), calc(100vw - 520px), 600px);
+            height: min(calc(100vh - 180px), calc(100vw - 520px), 600px);
+            min-width: 300px;
+            min-height: 300px;
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.06);
@@ -300,7 +315,13 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            width: 220px;
+            width: 240px;
+            min-width: 200px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 8px;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
         }
 
         .rules-panel {
@@ -342,7 +363,7 @@
             padding-bottom: 8px;
         }
         #move-list {
-            max-height: 120px;
+            max-height: 200px;
             overflow-y: auto;
             font-size: 0.78rem;
             color: var(--text-muted);
@@ -405,7 +426,9 @@
             display: flex;
             gap: 8px;
             align-items: center;
+            justify-content: center;
             margin-bottom: 4px;
+            flex-wrap: wrap;
         }
         .toolbar label {
             font-size: 0.8rem;
@@ -533,11 +556,18 @@
             text-align: center;
         }
 
-        @media (max-width: 940px) {
-            .game-container { flex-direction: column; align-items: center; }
-            .info-panel, .right-panel { width: 420px; max-width: 95vw; }
+        @media (max-width: 960px) {
+            .game-container { flex-direction: column; align-items: center; gap: 16px; }
+            .info-panel, .right-panel {
+                width: 100%; max-width: 560px;
+                position: static; max-height: none;
+            }
             .right-panel { flex-direction: row; flex-wrap: wrap; }
             .rules-panel, .move-history-panel { flex: 1; min-width: 180px; }
+            #board-container {
+                width: min(calc(100vh - 240px), 90vw, 560px);
+                height: min(calc(100vh - 240px), 90vw, 560px);
+            }
         }
         @media (max-width: 600px) {
             .stats-bar { flex-wrap: wrap; gap: 8px 16px; }
@@ -545,11 +575,15 @@
             #rules-content { display: none; }
             .mode-card { width: 130px; padding: 18px 14px; }
             .mode-card .icon { font-size: 2rem; }
+            #board-container {
+                width: min(calc(100vh - 200px), 92vw);
+                height: min(calc(100vh - 200px), 92vw);
+                min-width: 280px; min-height: 280px;
+            }
         }
         @media (max-width: 460px) {
-            #board-container { width: 340px; height: 340px; }
             header h1 { font-size: 1.6rem; }
-            .info-panel, .right-panel { width: 340px; }
+            .info-panel, .right-panel { max-width: 95vw; }
             .btn { min-height: 44px; }
             .diff-btn, .side-btn { min-height: 44px; }
         }
@@ -676,7 +710,7 @@
             <button class="btn btn-menu" onclick="backToMenu()">Main Menu</button>
         </div>
 
-        <div style="display:flex; flex-direction:column; align-items:center;">
+        <div class="board-column">
             <div class="replay-bar" id="replay-bar">
                 <button onclick="replayStep(-1)" id="replay-prev">&#9664; Prev</button>
                 <button onclick="replayTogglePlay()" id="replay-play">&#9654; Play</button>
@@ -1096,7 +1130,7 @@
         boardPixelSize = container.offsetWidth;
         canvas.width = boardPixelSize;
         canvas.height = boardPixelSize;
-        padding = 50;
+        padding = Math.max(30, Math.round(boardPixelSize * 0.1));
         cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
     }
 
