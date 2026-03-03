@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bagh Chal - बाघ चाल</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,8 +30,8 @@
             --goat-grad-start: #a5d6a7;
             --goat-grad-end: #2e7d32;
             --goat-border: #4CAF50;
-            --board-bg: rgba(30, 30, 50, 0.8);
-            --grid-line: rgba(255,255,255,0.15);
+            --board-bg: rgba(25, 25, 45, 0.9);
+            --grid-line: rgba(255,255,255,0.2);
             --gold: #ffd700;
         }
 
@@ -58,15 +61,14 @@
             --grid-line: rgba(255,255,255,0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
             min-height: 100vh;
             color: var(--text);
             overflow-x: hidden;
         }
+        .devanagari { font-family: 'Noto Sans Devanagari', sans-serif; }
 
         /* === ANIMATED BACKGROUND === */
         .bg-pattern {
@@ -77,6 +79,12 @@
                 radial-gradient(ellipse 80% 60% at 20% 10%, rgba(231,76,60,0.06) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 80% at 80% 90%, rgba(67,160,71,0.06) 0%, transparent 60%),
                 radial-gradient(ellipse 50% 50% at 50% 50%, rgba(240,192,64,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
             pointer-events: none;
         }
 
@@ -93,18 +101,34 @@
         /* === HEADER === */
         header {
             text-align: center;
-            padding: 16px 20px 8px;
+            padding: 20px 20px 8px;
+            transition: padding 0.3s;
         }
         header h1 {
             font-size: 2.2rem;
-            color: var(--accent);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, var(--accent), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: font-size 0.3s;
         }
         header h2 {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: var(--text-secondary);
             font-weight: normal;
             margin-top: 2px;
+            transition: font-size 0.3s;
+        }
+        header.compact {
+            padding: 8px 20px 2px;
+        }
+        header.compact h1 {
+            font-size: 1.5rem;
+        }
+        header.compact h2 {
+            font-size: 0.75rem;
         }
 
         /* ===== START MENU ===== */
@@ -112,15 +136,267 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            max-width: 480px;
+            padding: 24px 20px;
+            max-width: 640px;
             width: 100%;
+            animation: fadeSlideIn 0.5s ease;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .start-menu h3 {
             color: var(--accent);
             font-size: 1.3rem;
             margin-bottom: 20px;
         }
+
+        /* === GAME INTRO SECTION === */
+        .game-intro {
+            text-align: center;
+            width: 100%;
+            padding: 0 10px 20px;
+        }
+        .intro-tagline {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 24px;
+            opacity: 0.8;
+        }
+        .intro-matchup {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .intro-piece-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            width: 190px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .intro-piece-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+        .intro-piece-card.tiger-card { border-color: rgba(233,69,96,0.3); }
+        .intro-piece-card.goat-card { border-color: rgba(76,175,80,0.3); }
+        .intro-piece-card img { width: 64px; height: 64px; }
+        .intro-piece-card .piece-label {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .intro-piece-card.tiger-card .piece-label { color: var(--tiger-color); }
+        .intro-piece-card.goat-card .piece-label { color: var(--goat-color); }
+        .intro-piece-card .piece-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .intro-vs {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--gold);
+            text-shadow: 0 0 12px rgba(255,215,0,0.4);
+        }
+        .intro-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 6px;
+        }
+        .intro-learn-btn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            background: rgba(233,69,96,0.12);
+            color: var(--accent);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .intro-learn-btn:hover {
+            background: rgba(233,69,96,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(233,69,96,0.25);
+        }
+
+        /* === TUTORIAL OVERLAY === */
+        .tutorial-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .tutorial-overlay.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .tutorial-card {
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            border: 2px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            animation: scaleIn 0.3s ease;
+            position: relative;
+        }
+        .tutorial-step-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 16px;
+        }
+        .tutorial-canvas-wrap {
+            margin: 0 auto 16px;
+            width: 260px;
+            height: 260px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid var(--panel-border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .tutorial-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .tutorial-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 48px;
+        }
+        .tutorial-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+        .tutorial-nav-btn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: 2px solid var(--panel-border);
+            background: var(--panel-bg);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tutorial-nav-btn:hover {
+            border-color: var(--accent);
+            background: rgba(233,69,96,0.15);
+        }
+        .tutorial-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .tutorial-nav-btn.primary {
+            background: linear-gradient(135deg, var(--accent), var(--tiger-grad-end));
+            border-color: transparent;
+            color: #fff;
+        }
+        .tutorial-nav-btn.primary:hover {
+            background: linear-gradient(135deg, var(--accent-hover), var(--accent));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233,69,96,0.4);
+        }
+        .tutorial-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .tutorial-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--panel-border);
+            transition: all 0.3s;
+        }
+        .tutorial-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px rgba(233,69,96,0.5);
+            transform: scale(1.2);
+        }
+        .tutorial-skip {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .tutorial-skip:hover { opacity: 1; }
+        .tutorial-win-grid {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 12px 0;
+        }
+        .tutorial-win-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .tutorial-win-side .win-label {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .tutorial-win-side .win-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .tutorial-win-side .win-icons {
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+
+        /* === QUICK PLAY BUTTON === */
+        .quick-play-btn {
+            margin-top: 8px;
+            margin-bottom: 16px;
+            padding: 12px 32px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--tiger-grad-end));
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(233,69,96,0.3);
+            display: none;
+        }
+        .quick-play-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 24px rgba(233,69,96,0.45);
+        }
+        .quick-play-btn:active { transform: scale(0.97); }
+
+        /* === MODE CARDS === */
         .mode-cards {
             display: flex;
             gap: 16px;
@@ -133,21 +409,115 @@
             background: var(--panel-bg);
             border: 2px solid var(--panel-border);
             border-radius: 16px;
-            padding: 24px 20px;
-            width: 160px;
+            padding: 24px 22px;
+            width: 170px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
             backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: radial-gradient(circle at 50% 0%, rgba(233,69,96,0.15), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .mode-card:hover::before { opacity: 1; }
         .mode-card:hover {
             border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.35);
         }
-        .mode-card .icon { font-size: 2.5rem; margin-bottom: 12px; }
-        .mode-card .title { font-weight: bold; font-size: 1.1rem; margin-bottom: 6px; }
-        .mode-card .desc { font-size: 0.8rem; color: var(--text-muted); }
+        .mode-card:active { transform: translateY(-2px) scale(0.98); }
+        .mode-card .icon { font-size: 2.5rem; margin-bottom: 12px; position: relative; z-index: 1; }
+        .mode-card .title { font-weight: bold; font-size: 1.1rem; margin-bottom: 6px; position: relative; z-index: 1; }
+        .mode-card .desc { font-size: 0.8rem; color: var(--text-muted); position: relative; z-index: 1; }
+        .mode-card .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--gold);
+            color: #1a1a2e;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            z-index: 2;
+        }
+
+        /* === GAME TOOLTIP === */
+        .game-tooltip {
+            position: absolute;
+            bottom: -44px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,215,0,0.15);
+            border: 1px solid rgba(255,215,0,0.3);
+            color: var(--gold);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            animation: tooltipFadeIn 0.4s ease;
+            z-index: 10;
+            pointer-events: none;
+        }
+        @keyframes tooltipFadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* === ACHIEVEMENT TOAST === */
+        .achievement-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            border: 2px solid var(--gold);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 300;
+            animation: toastSlideIn 0.4s ease, toastSlideOut 0.4s ease 3.6s forwards;
+            box-shadow: 0 8px 32px rgba(255,215,0,0.2);
+            max-width: 320px;
+        }
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastSlideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100px); }
+        }
+        .achievement-toast .toast-icon { font-size: 1.6rem; }
+        .achievement-toast .toast-text { display: flex; flex-direction: column; }
+        .achievement-toast .toast-title { font-weight: 700; font-size: 0.85rem; color: var(--gold); }
+        .achievement-toast .toast-desc { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* === STRATEGY TIP (win screen) === */
+        .strategy-tip {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            background: rgba(255,215,0,0.08);
+            border-radius: 8px;
+            border-left: 3px solid var(--gold);
+        }
+
+        /* === ELO RANK BADGE === */
+        .elo-rank { font-size: 0.75rem; margin-left: 2px; }
 
         .difficulty-select {
             display: none;
@@ -213,21 +583,30 @@
         /* ===== GAME AREA ===== */
         .game-container {
             display: none;
-            flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
-            gap: 24px;
-            padding: 8px 20px 20px;
+            gap: 16px;
+            padding: 4px 12px 12px;
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
         }
         .game-container.show { display: flex; }
 
         .info-panel {
-            background: var(--panel-bg);
+            background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 20px;
-            width: 220px;
-            backdrop-filter: blur(10px);
+            width: 240px;
+            min-width: 200px;
+            flex-shrink: 0;
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 8px;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
         .info-panel h3 {
             color: var(--accent);
@@ -282,13 +661,22 @@
             color: #ccc;
         }
 
+        .board-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
         #board-container {
             position: relative;
-            width: 420px;
-            height: 420px;
+            width: min(calc(100vh - 140px), calc(100vw - 520px), 720px);
+            height: min(calc(100vh - 140px), calc(100vw - 520px), 720px);
+            min-width: 340px;
+            min-height: 340px;
             border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.06);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 12px 40px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.05);
         }
         #board-canvas {
             position: absolute;
@@ -300,17 +688,24 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            width: 220px;
+            width: 240px;
+            min-width: 200px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 8px;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
         }
 
         .rules-panel {
-            background: var(--panel-bg);
+            background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
             font-size: 0.8rem;
             line-height: 1.5;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
         .rules-panel h3 {
             color: var(--accent);
@@ -328,11 +723,12 @@
         .rules-panel .goat-text { color: var(--goat-color); font-weight: bold; }
 
         .move-history-panel {
-            background: var(--panel-bg);
+            background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
         .move-history-panel h3 {
             color: var(--accent);
@@ -342,7 +738,7 @@
             padding-bottom: 8px;
         }
         #move-list {
-            max-height: 120px;
+            max-height: 200px;
             overflow-y: auto;
             font-size: 0.78rem;
             color: var(--text-muted);
@@ -405,7 +801,9 @@
             display: flex;
             gap: 8px;
             align-items: center;
+            justify-content: center;
             margin-bottom: 4px;
+            flex-wrap: wrap;
         }
         .toolbar label {
             font-size: 0.8rem;
@@ -492,7 +890,21 @@
             border: 1px solid rgba(255,165,0,0.3);
             color: #ffb347;
         }
-        .ai-thinking.show { display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .ai-thinking.show { display: flex; align-items: center; justify-content: center; gap: 6px; position: relative; overflow: hidden; }
+        .ai-thinking.show::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            width: 40%;
+            background: linear-gradient(90deg, transparent, #ffb347, transparent);
+            animation: aiSweep 1.5s ease-in-out infinite;
+        }
+        @keyframes aiSweep {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
         .ai-thinking .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ffb347; animation: dot-bounce 1.2s infinite; }
         .ai-thinking .dot:nth-child(2) { animation-delay: 0.2s; }
         .ai-thinking .dot:nth-child(3) { animation-delay: 0.4s; }
@@ -533,11 +945,18 @@
             text-align: center;
         }
 
-        @media (max-width: 940px) {
-            .game-container { flex-direction: column; align-items: center; }
-            .info-panel, .right-panel { width: 420px; max-width: 95vw; }
+        @media (max-width: 960px) {
+            .game-container { flex-direction: column; align-items: center; gap: 16px; }
+            .info-panel, .right-panel {
+                width: 100%; max-width: 560px;
+                position: static; max-height: none;
+            }
             .right-panel { flex-direction: row; flex-wrap: wrap; }
             .rules-panel, .move-history-panel { flex: 1; min-width: 180px; }
+            #board-container {
+                width: min(calc(100vh - 200px), 92vw, 680px);
+                height: min(calc(100vh - 200px), 92vw, 680px);
+            }
         }
         @media (max-width: 600px) {
             .stats-bar { flex-wrap: wrap; gap: 8px 16px; }
@@ -545,24 +964,38 @@
             #rules-content { display: none; }
             .mode-card { width: 130px; padding: 18px 14px; }
             .mode-card .icon { font-size: 2rem; }
+            #board-container {
+                width: min(calc(100vh - 160px), 95vw);
+                height: min(calc(100vh - 160px), 95vw);
+                min-width: 300px; min-height: 300px;
+            }
+            .intro-matchup { flex-direction: column; gap: 10px; }
+            .intro-vs { display: none; }
+            .intro-piece-card { width: 80%; max-width: 260px; flex-direction: row; padding: 12px 16px; }
+            .intro-piece-card img { width: 40px; height: 40px; }
+            .tutorial-card { padding: 24px 16px; }
+            .tutorial-canvas-wrap { width: 220px; height: 220px; }
+            .achievement-toast { right: 10px; left: 10px; max-width: none; }
         }
         @media (max-width: 460px) {
-            #board-container { width: 340px; height: 340px; }
             header h1 { font-size: 1.6rem; }
-            .info-panel, .right-panel { width: 340px; }
+            .info-panel, .right-panel { max-width: 95vw; }
             .btn { min-height: 44px; }
-            .diff-btn, .side-btn { min-height: 44px; }
+            .diff-btn, .side-btn { min-height: 48px; }
+            .mode-card { min-height: 48px; }
+            .tutorial-canvas-wrap { width: 180px; height: 180px; }
         }
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas" class="bg-canvas"></canvas>
     <header>
-        <h1>बाघ चाल — Bagh Chal</h1>
+        <h1><span class="devanagari">बाघ चाल</span> — Bagh Chal</h1>
         <h2>The Tiger Moving Game of Nepal</h2>
     </header>
 
     <!-- Toolbar -->
-    <div class="toolbar" id="toolbar">
+    <div class="toolbar" id="toolbar" style="display:none">
         <label>Theme:</label>
         <select id="theme-select" onchange="changeTheme(this.value)">
             <option value="dark">Dark</option>
@@ -581,16 +1014,43 @@
     </div>
 
     <!-- Session Stats -->
-    <div class="stats-bar" id="stats-bar">
+    <div class="stats-bar" id="stats-bar" style="display:none">
         <span>Played: <span class="val" id="stat-played">0</span></span>
         <span>Tiger Wins: <span class="val" id="stat-tiger-wins">0</span></span>
         <span>Goat Wins: <span class="val" id="stat-goat-wins">0</span></span>
         <span>Streak: <span class="val" id="stat-streak">0</span></span>
-        <span>ELO: <span class="val" id="stat-elo">1000</span></span>
+        <span>ELO: <span class="val" id="stat-elo">1000</span><span class="elo-rank" id="elo-rank"></span></span>
     </div>
 
     <!-- Start Menu -->
     <div class="start-menu" id="start-menu">
+        <!-- Game Intro -->
+        <div class="game-intro" id="game-intro">
+            <div class="intro-tagline">A 200-year-old Nepali strategy board game</div>
+            <div class="intro-matchup">
+                <div class="intro-piece-card tiger-card">
+                    <img id="intro-tiger-img" alt="Tiger">
+                    <div>
+                        <div class="piece-label">4 Tigers</div>
+                        <div class="piece-desc">Hunt goats by jumping over them</div>
+                    </div>
+                </div>
+                <div class="intro-vs">VS</div>
+                <div class="intro-piece-card goat-card">
+                    <img id="intro-goat-img" alt="Goat">
+                    <div>
+                        <div class="piece-label">20 Goats</div>
+                        <div class="piece-desc">Surround and trap all 4 tigers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="intro-actions">
+                <button class="intro-learn-btn" onclick="openTutorial()">Learn to Play</button>
+            </div>
+        </div>
+
+        <button class="quick-play-btn" id="quick-play-btn" onclick="quickPlay()">Quick Play</button>
+
         <h3>Choose Game Mode</h3>
         <div class="mode-cards">
             <div class="mode-card" onclick="selectMode('human')">
@@ -599,6 +1059,7 @@
                 <div class="desc">Play with a friend on the same device</div>
             </div>
             <div class="mode-card" onclick="selectMode('ai')">
+                <span class="badge">Popular</span>
                 <div class="icon">🤖</div>
                 <div class="title">vs Computer</div>
                 <div class="desc">Challenge the AI opponent</div>
@@ -676,7 +1137,7 @@
             <button class="btn btn-menu" onclick="backToMenu()">Main Menu</button>
         </div>
 
-        <div style="display:flex; flex-direction:column; align-items:center;">
+        <div class="board-column">
             <div class="replay-bar" id="replay-bar">
                 <button onclick="replayStep(-1)" id="replay-prev">&#9664; Prev</button>
                 <button onclick="replayTogglePlay()" id="replay-play">&#9654; Play</button>
@@ -684,8 +1145,9 @@
                 <span class="replay-info" id="replay-info">0 / 0</span>
                 <button onclick="exitReplay()">&#10005; Exit</button>
             </div>
-            <div id="board-container">
+            <div id="board-container" style="position:relative;">
                 <canvas id="board-canvas"></canvas>
+                <div class="game-tooltip" id="game-tooltip" style="display:none;"></div>
             </div>
         </div>
 
@@ -715,6 +1177,7 @@
             <h2 id="message-title">Game Over</h2>
             <p id="message-text">Someone wins!</p>
             <p id="elo-change" style="display:none; font-size:0.9rem; font-weight:bold; margin-bottom:12px;"></p>
+            <div class="strategy-tip" id="strategy-tip" style="display:none;"></div>
             <button class="btn btn-restart" onclick="restartGame()">Play Again</button>
             <button class="btn btn-menu" id="rematch-btn" onclick="requestRematch()" style="display:none; background:rgba(88,166,255,0.2); border-color:rgba(88,166,255,0.4); color:#58a6ff;">Rematch</button>
             <button class="btn btn-menu" onclick="startReplay()" style="background:rgba(255,165,0,0.2); border-color:rgba(255,165,0,0.4); color:#ffb347;">Replay</button>
@@ -724,6 +1187,31 @@
 
     <!-- Sound toggle -->
     <button class="sound-toggle" id="sound-toggle" title="Toggle sound" onclick="toggleSound()">🔊</button>
+
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorial-overlay">
+        <div class="tutorial-card">
+            <button class="tutorial-skip" onclick="closeTutorial()">Skip</button>
+            <div class="tutorial-step-title" id="tutorial-title">The Board</div>
+            <div class="tutorial-canvas-wrap">
+                <canvas id="tutorial-canvas" width="260" height="260"></canvas>
+            </div>
+            <div class="tutorial-text" id="tutorial-text">
+                The game is played on a 5x5 grid. Pieces move along the lines.
+            </div>
+            <div class="tutorial-nav">
+                <button class="tutorial-nav-btn" id="tutorial-prev" onclick="prevTutorialStep()" disabled>Back</button>
+                <button class="tutorial-nav-btn primary" id="tutorial-next" onclick="nextTutorialStep()">Next</button>
+            </div>
+            <div class="tutorial-dots" id="tutorial-dots">
+                <div class="tutorial-dot active"></div>
+                <div class="tutorial-dot"></div>
+                <div class="tutorial-dot"></div>
+                <div class="tutorial-dot"></div>
+                <div class="tutorial-dot"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
     // =====================================================
@@ -892,73 +1380,105 @@
     // Detailed animal face SVGs rendered as data URI images for cross-platform consistency
 
     function buildTigerSVG(colors) {
-        const c = colors || { body: '#e8922d', bodyDark: '#c06a10', stripe: '#2a1500', ear: '#d97e1a', earInner: '#ffb366', eye: '#4a0', eyePupil: '#111', nose: '#3a1a00', whisker: '#555', muzzle: '#ffe0b0' };
+        const c = colors || { body: '#e8922d', bodyDark: '#b56a10', stripe: '#4a2000', ear: '#d97e1a', earInner: '#ffb366', eye: '#ffd700', eyePupil: '#111', nose: '#2a1200', whisker: '#c8a070', muzzle: '#ffe0b0', white: '#fff8ee' };
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><radialGradient id="tg" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient></defs>
-<circle cx="32" cy="34" r="28" fill="url(#tg)"/>
-<ellipse cx="18" cy="10" rx="10" ry="12" fill="${c.ear}"/>
-<ellipse cx="46" cy="10" rx="10" ry="12" fill="${c.ear}"/>
-<ellipse cx="18" cy="11" rx="6" ry="7" fill="${c.earInner}"/>
-<ellipse cx="46" cy="11" rx="6" ry="7" fill="${c.earInner}"/>
-<circle cx="32" cy="34" r="26" fill="none"/>
-<path d="M20 18 Q18 28 16 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M24 16 Q23 26 21 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path d="M44 18 Q46 28 48 38" stroke="${c.stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M40 16 Q41 26 43 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path d="M28 14 Q32 12 36 14" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path d="M15 28 Q12 30 10 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path d="M49 28 Q52 30 54 34" stroke="${c.stripe}" stroke-width="2" fill="none" stroke-linecap="round"/>
-<ellipse cx="32" cy="38" rx="14" ry="11" fill="${c.muzzle}" opacity="0.85"/>
-<ellipse cx="22" cy="30" rx="5.5" ry="5" fill="white"/>
-<ellipse cx="42" cy="30" rx="5.5" ry="5" fill="white"/>
-<ellipse cx="23" cy="30" rx="3" ry="3.5" fill="${c.eye}"/>
-<ellipse cx="43" cy="30" rx="3" ry="3.5" fill="${c.eye}"/>
-<ellipse cx="23.5" cy="29.5" rx="1.5" ry="2" fill="${c.eyePupil}"/>
-<ellipse cx="43.5" cy="29.5" rx="1.5" ry="2" fill="${c.eyePupil}"/>
-<circle cx="22" cy="28.5" r="1.2" fill="white" opacity="0.7"/>
-<circle cx="42" cy="28.5" r="1.2" fill="white" opacity="0.7"/>
-<ellipse cx="32" cy="36" rx="4" ry="2.5" fill="${c.nose}"/>
-<ellipse cx="32" cy="36.5" rx="2.5" ry="1" fill="#5a3a20" opacity="0.4"/>
-<path d="M32 38.5 Q30 42 27 44" stroke="${c.whisker}" stroke-width="0.8" fill="none"/>
-<path d="M32 38.5 Q34 42 37 44" stroke="${c.whisker}" stroke-width="0.8" fill="none"/>
-<path d="M32 39 L32 42" stroke="#a06030" stroke-width="0.8" fill="none"/>
-<path d="M15 34 Q10 33 5 32" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
-<path d="M15 36 Q10 37 5 38" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
-<path d="M49 34 Q54 33 59 32" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
-<path d="M49 36 Q54 37 59 38" stroke="${c.whisker}" stroke-width="0.7" fill="none"/>
-<path d="M28 44 Q32 47 36 44" stroke="#a06030" stroke-width="0.8" fill="none"/>
+<defs>
+<radialGradient id="tg" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient>
+</defs>
+<!-- Head shape - wider, more angular tiger head -->
+<path d="M8 28 Q6 14 18 8 Q24 5 32 6 Q40 5 46 8 Q58 14 56 28 Q56 42 46 52 Q38 58 32 58 Q26 58 18 52 Q8 42 8 28Z" fill="url(#tg)"/>
+<!-- Ears - pointed tiger ears -->
+<path d="M12 20 L8 4 L22 14Z" fill="${c.ear}"/>
+<path d="M52 20 L56 4 L42 14Z" fill="${c.ear}"/>
+<path d="M13 18 L10 7 L20 14Z" fill="${c.earInner}"/>
+<path d="M51 18 L54 7 L44 14Z" fill="${c.earInner}"/>
+<!-- White cheek/muzzle patches -->
+<path d="M14 30 Q14 22 22 20 Q28 24 28 32 Q26 40 18 40 Q14 38 14 30Z" fill="${c.white}" opacity="0.5"/>
+<path d="M50 30 Q50 22 42 20 Q36 24 36 32 Q38 40 46 40 Q50 38 50 30Z" fill="${c.white}" opacity="0.5"/>
+<!-- Tiger stripes on forehead -->
+<path d="M26 12 L28 22" stroke="${c.stripe}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+<path d="M32 10 L32 20" stroke="${c.stripe}" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path d="M38 12 L36 22" stroke="${c.stripe}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+<!-- Stripes on cheeks -->
+<path d="M14 26 Q10 28 8 32" stroke="${c.stripe}" stroke-width="2" stroke-linecap="round" fill="none"/>
+<path d="M16 30 Q12 33 10 37" stroke="${c.stripe}" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+<path d="M50 26 Q54 28 56 32" stroke="${c.stripe}" stroke-width="2" stroke-linecap="round" fill="none"/>
+<path d="M48 30 Q52 33 54 37" stroke="${c.stripe}" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+<!-- White muzzle area -->
+<ellipse cx="32" cy="42" rx="13" ry="10" fill="${c.muzzle}" opacity="0.9"/>
+<!-- Eyes - fierce, golden -->
+<ellipse cx="22" cy="28" rx="6" ry="5" fill="white"/>
+<ellipse cx="42" cy="28" rx="6" ry="5" fill="white"/>
+<ellipse cx="22" cy="28" rx="4" ry="4.5" fill="${c.eye}"/>
+<ellipse cx="42" cy="28" rx="4" ry="4.5" fill="${c.eye}"/>
+<!-- Slit pupils -->
+<ellipse cx="22" cy="28" rx="1.8" ry="4" fill="${c.eyePupil}"/>
+<ellipse cx="42" cy="28" rx="1.8" ry="4" fill="${c.eyePupil}"/>
+<!-- Eye highlights -->
+<circle cx="20.5" cy="26.5" r="1.5" fill="white" opacity="0.8"/>
+<circle cx="40.5" cy="26.5" r="1.5" fill="white" opacity="0.8"/>
+<!-- Nose - triangular -->
+<path d="M28 38 L32 35 L36 38 Q32 41 28 38Z" fill="${c.nose}"/>
+<!-- Mouth -->
+<path d="M32 41 L32 44" stroke="${c.nose}" stroke-width="1.2" fill="none"/>
+<path d="M28 45 Q32 48 36 45" stroke="${c.nose}" stroke-width="1" fill="none"/>
+<!-- Whiskers -->
+<path d="M26 40 Q18 37 8 36" stroke="${c.whisker}" stroke-width="0.9" fill="none"/>
+<path d="M26 42 Q18 42 8 43" stroke="${c.whisker}" stroke-width="0.9" fill="none"/>
+<path d="M38 40 Q46 37 56 36" stroke="${c.whisker}" stroke-width="0.9" fill="none"/>
+<path d="M38 42 Q46 42 56 43" stroke="${c.whisker}" stroke-width="0.9" fill="none"/>
 </svg>`;
     }
 
     function buildGoatSVG(colors) {
-        const c = colors || { body: '#f0ece4', bodyDark: '#c8c0b0', horn: '#665544', hornLight: '#998877', ear: '#e8d8c8', earInner: '#f5c4c4', eye: '#443322', eyeIris: '#886633', nose: '#8a6050', beard: '#c8b8a0' };
+        const c = colors || { body: '#f0ece4', bodyDark: '#c8c0b0', horn: '#887766', hornLight: '#aa9988', ear: '#e0d0c0', earInner: '#f5c4c4', eye: '#332211', eyeIris: '#886633', nose: '#6a4a3a', beard: '#c8b8a0', white: '#fff8f0' };
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><radialGradient id="gg" cx="50%" cy="45%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient></defs>
-<path d="M22 6 Q20 0 17 2 Q19 8 20 14" fill="${c.horn}" stroke="${c.hornLight}" stroke-width="0.5"/>
-<path d="M42 6 Q44 0 47 2 Q45 8 44 14" fill="${c.horn}" stroke="${c.hornLight}" stroke-width="0.5"/>
-<path d="M22 6 Q21 3 18.5 3" stroke="${c.hornLight}" stroke-width="1" fill="none" stroke-linecap="round"/>
-<path d="M42 6 Q43 3 45.5 3" stroke="${c.hornLight}" stroke-width="1" fill="none" stroke-linecap="round"/>
-<circle cx="32" cy="36" r="26" fill="url(#gg)"/>
-<ellipse cx="14" cy="26" rx="9" ry="6" fill="${c.ear}" transform="rotate(-20 14 26)"/>
-<ellipse cx="50" cy="26" rx="9" ry="6" fill="${c.ear}" transform="rotate(20 50 26)"/>
-<ellipse cx="14" cy="26" rx="5" ry="3.5" fill="${c.earInner}" transform="rotate(-20 14 26)"/>
-<ellipse cx="50" cy="26" rx="5" ry="3.5" fill="${c.earInner}" transform="rotate(20 50 26)"/>
-<ellipse cx="23" cy="32" rx="5" ry="4.5" fill="white"/>
-<ellipse cx="41" cy="32" rx="5" ry="4.5" fill="white"/>
-<ellipse cx="23.5" cy="32" rx="3" ry="3.2" fill="${c.eyeIris}"/>
-<ellipse cx="41.5" cy="32" rx="3" ry="3.2" fill="${c.eyeIris}"/>
-<rect x="22" y="31" width="3" height="2.5" rx="0.5" fill="${c.eye}"/>
-<rect x="40" y="31" width="3" height="2.5" rx="0.5" fill="${c.eye}"/>
-<circle cx="22.5" cy="30.5" r="1" fill="white" opacity="0.6"/>
-<circle cx="40.5" cy="30.5" r="1" fill="white" opacity="0.6"/>
-<ellipse cx="32" cy="41" rx="8" ry="6" fill="${c.body}" opacity="0.7"/>
-<ellipse cx="32" cy="39" rx="3.5" ry="2.2" fill="${c.nose}"/>
-<ellipse cx="30" cy="42" rx="2" ry="1.2" fill="#bb9988" opacity="0.5"/>
-<ellipse cx="34" cy="42" rx="2" ry="1.2" fill="#bb9988" opacity="0.5"/>
-<path d="M30.5 42.5 Q32 44.5 33.5 42.5" stroke="#aa8877" stroke-width="0.8" fill="none"/>
-<path d="M30 50 Q32 56 34 50" fill="${c.beard}" opacity="0.6"/>
-<path d="M28 49 Q30 54 32 50" fill="${c.beard}" opacity="0.4"/>
-<path d="M32 50 Q34 54 36 49" fill="${c.beard}" opacity="0.4"/>
+<defs>
+<radialGradient id="gg" cx="50%" cy="45%" r="50%"><stop offset="0%" stop-color="${c.body}"/><stop offset="100%" stop-color="${c.bodyDark}"/></radialGradient>
+</defs>
+<!-- Horns - curved ridged goat horns -->
+<path d="M24 18 Q22 10 18 4 Q14 0 12 2" stroke="${c.horn}" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M40 18 Q42 10 46 4 Q50 0 52 2" stroke="${c.horn}" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M24 18 Q22 10 18 4 Q14 0 12 2" stroke="${c.hornLight}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M40 18 Q42 10 46 4 Q50 0 52 2" stroke="${c.hornLight}" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- Horn ridges -->
+<path d="M22 13 L20 11" stroke="${c.hornLight}" stroke-width="1" fill="none" opacity="0.6"/>
+<path d="M21 9 L18 7" stroke="${c.hornLight}" stroke-width="1" fill="none" opacity="0.6"/>
+<path d="M42 13 L44 11" stroke="${c.hornLight}" stroke-width="1" fill="none" opacity="0.6"/>
+<path d="M43 9 L46 7" stroke="${c.hornLight}" stroke-width="1" fill="none" opacity="0.6"/>
+<!-- Head shape - elongated goat face -->
+<ellipse cx="32" cy="34" rx="22" ry="24" fill="url(#gg)"/>
+<!-- Ears - floppy, horizontal goat ears -->
+<ellipse cx="8" cy="28" rx="10" ry="5" fill="${c.ear}" transform="rotate(-15 8 28)"/>
+<ellipse cx="56" cy="28" rx="10" ry="5" fill="${c.ear}" transform="rotate(15 56 28)"/>
+<ellipse cx="9" cy="28" rx="6" ry="3" fill="${c.earInner}" transform="rotate(-15 9 28)"/>
+<ellipse cx="55" cy="28" rx="6" ry="3" fill="${c.earInner}" transform="rotate(15 55 28)"/>
+<!-- Lighter face patch -->
+<ellipse cx="32" cy="40" rx="14" ry="14" fill="${c.white}" opacity="0.4"/>
+<!-- Eyes - horizontal rectangular pupils (goat eyes!) -->
+<ellipse cx="24" cy="30" rx="5" ry="4.5" fill="white"/>
+<ellipse cx="40" cy="30" rx="5" ry="4.5" fill="white"/>
+<ellipse cx="24" cy="30" rx="3.5" ry="3.5" fill="${c.eyeIris}"/>
+<ellipse cx="40" cy="30" rx="3.5" ry="3.5" fill="${c.eyeIris}"/>
+<!-- Rectangular horizontal pupils - distinctive goat feature -->
+<rect x="22" y="29" width="4" height="2.2" rx="0.5" fill="${c.eye}"/>
+<rect x="38" y="29" width="4" height="2.2" rx="0.5" fill="${c.eye}"/>
+<circle cx="23" cy="28.5" r="1" fill="white" opacity="0.6"/>
+<circle cx="39" cy="28.5" r="1" fill="white" opacity="0.6"/>
+<!-- Nose/snout - wider, more goat-like -->
+<ellipse cx="32" cy="42" rx="8" ry="6" fill="${c.body}" opacity="0.8"/>
+<ellipse cx="29" cy="41" rx="2.5" ry="2" fill="${c.nose}" opacity="0.7"/>
+<ellipse cx="35" cy="41" rx="2.5" ry="2" fill="${c.nose}" opacity="0.7"/>
+<!-- Nostrils -->
+<ellipse cx="29" cy="41.5" rx="1.2" ry="0.8" fill="${c.eye}" opacity="0.5"/>
+<ellipse cx="35" cy="41.5" rx="1.2" ry="0.8" fill="${c.eye}" opacity="0.5"/>
+<!-- Mouth -->
+<path d="M28 44 Q32 47 36 44" stroke="${c.nose}" stroke-width="1" fill="none"/>
+<path d="M32 44 L32 46" stroke="${c.nose}" stroke-width="0.8" fill="none"/>
+<!-- Beard - distinctive goat beard -->
+<path d="M28 48 Q26 54 24 58" stroke="${c.beard}" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+<path d="M32 48 Q32 56 32 60" stroke="${c.beard}" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6"/>
+<path d="M36 48 Q38 54 40 58" stroke="${c.beard}" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
 </svg>`;
     }
 
@@ -973,11 +1493,11 @@
             goat: buildGoatSVG()
         };
         PIECE_SVGS.neon = {
-            tiger: buildTigerSVG({ body: '#ff4444', bodyDark: '#cc0000', stripe: '#440000', ear: '#ff3333', earInner: '#ff8888', eye: '#00ff66', eyePupil: '#003300', nose: '#880000', whisker: '#ff6666', muzzle: '#ffaaaa' }),
-            goat: buildGoatSVG({ body: '#44ff88', bodyDark: '#00aa44', horn: '#00ff66', hornLight: '#88ffaa', ear: '#33dd77', earInner: '#88ffbb', eye: '#003300', eyeIris: '#00ff44', nose: '#008833', beard: '#33cc66' })
+            tiger: buildTigerSVG({ body: '#ff4444', bodyDark: '#cc0000', stripe: '#440000', ear: '#ff3333', earInner: '#ff8888', eye: '#00ff66', eyePupil: '#003300', nose: '#880000', whisker: '#ff6666', muzzle: '#ffaaaa', white: '#ffcccc' }),
+            goat: buildGoatSVG({ body: '#44ff88', bodyDark: '#00aa44', horn: '#00ff66', hornLight: '#88ffaa', ear: '#33dd77', earInner: '#88ffbb', eye: '#003300', eyeIris: '#00ff44', nose: '#008833', beard: '#33cc66', white: '#ccffdd' })
         };
         PIECE_SVGS.nepal = {
-            tiger: buildTigerSVG({ body: '#ff6633', bodyDark: '#cc3300', stripe: '#330000', ear: '#ee5522', earInner: '#ffaa77', eye: '#ffcc00', eyePupil: '#111', nose: '#440000', whisker: '#884422', muzzle: '#ffcc99' }),
+            tiger: buildTigerSVG({ body: '#ff6633', bodyDark: '#cc3300', stripe: '#330000', ear: '#ee5522', earInner: '#ffaa77', eye: '#ffcc00', eyePupil: '#111', nose: '#440000', whisker: '#884422', muzzle: '#ffcc99', white: '#ffddbb' }),
             goat: buildGoatSVG()
         };
         // wood and marble use classic
@@ -1033,6 +1553,9 @@
         document.getElementById('stat-goat-wins').textContent = stats.goatWins;
         document.getElementById('stat-streak').textContent = stats.streak;
         document.getElementById('stat-elo').textContent = stats.elo || 1000;
+        const rank = getEloRank(stats.elo || 1000);
+        const rankEl = document.getElementById('elo-rank');
+        if (rankEl) rankEl.textContent = ' ' + rank.icon;
     }
 
     // ELO calculation
@@ -1062,6 +1585,10 @@
         }
 
         saveStats();
+
+        // Check achievements
+        const extra = (gameMode === 'ai' && aiDifficulty === 'hard' && winner === playerSide) ? 'hard_win' : null;
+        if (typeof checkAchievements === 'function') checkAchievements(extra);
     }
 
     // ===== GAME STATE =====
@@ -1096,7 +1623,7 @@
         boardPixelSize = container.offsetWidth;
         canvas.width = boardPixelSize;
         canvas.height = boardPixelSize;
-        padding = 50;
+        padding = Math.max(35, Math.round(boardPixelSize * 0.08));
         cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
     }
 
@@ -1271,7 +1798,7 @@
 
         const lineColor = skin.lineColor || getComputedStyle(document.body).getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
         ctx.strokeStyle = lineColor;
-        ctx.lineWidth = skin.lineWidth || 1.5;
+        ctx.lineWidth = skin.lineWidth || Math.max(1.5, cellSize * 0.015);
 
         // Grid lines
         for (let r = 0; r < BOARD_SIZE; r++) {
@@ -1297,16 +1824,27 @@
             }
         }
 
-        // Valid move indicators
+        // Valid move indicators (pulsing)
+        const pulseT = Date.now() / 1000;
         for (const move of validMoves) {
             const { r, c } = parseKey(move.to);
             const { x, y } = gridToPixel(r, c);
+            const pulse = 0.5 + Math.sin(pulseT * 4) * 0.3;
+            const isCapture = !!move.capture;
+            const baseColor = isCapture ? [233, 69, 96] : [255, 215, 0];
+            const radius = Math.max(10, cellSize * 0.1) + Math.sin(pulseT * 3) * 3;
             ctx.beginPath();
-            ctx.arc(x, y, 12, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 215, 0, 0.25)';
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${baseColor.join(',')}, ${0.15 + pulse * 0.1})`;
             ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+            ctx.strokeStyle = `rgba(${baseColor.join(',')}, ${0.3 + pulse * 0.3})`;
             ctx.lineWidth = 2;
+            ctx.stroke();
+            // Outer ring
+            ctx.beginPath();
+            ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${baseColor.join(',')}, ${0.1 + pulse * 0.1})`;
+            ctx.lineWidth = 1;
             ctx.stroke();
         }
 
@@ -1321,7 +1859,7 @@
                 if (!board[key]) {
                     const { x, y } = gridToPixel(r, c);
                     ctx.beginPath();
-                    ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.arc(x, y, Math.max(3, cellSize * 0.035), 0, Math.PI * 2);
                     ctx.fillStyle = skin.dotColor || 'rgba(255,255,255,0.25)';
                     ctx.fill();
                 }
@@ -1335,8 +1873,11 @@
                 if (animPiece && key === animPiece.fromKey) continue;
                 if (animPiece && animPiece.captureKey && key === animPiece.captureKey) {
                     // Draw captured piece fading out
-                    const alpha = 1 - animPiece.progress;
-                    drawPiece(r, c, 'goat', false, alpha, 1 - animPiece.progress * 0.5);
+                    const captAlpha = 1 - animPiece.progress;
+                    const { x: cx, y: cy } = gridToPixel(r, c);
+                    ctx.globalAlpha = captAlpha;
+                    drawPiece(cx, cy, 'goat', false);
+                    ctx.globalAlpha = 1;
                     continue;
                 }
                 const piece = board[key];
@@ -1363,13 +1904,14 @@
     }
 
     function drawPiece(x, y, type, isSelected) {
-        const radius = isSelected ? 22 : 19;
-        const imgSize = radius * 2.2;
+        const baseR = Math.max(22, Math.round(cellSize * 0.32));
+        const radius = isSelected ? baseR + 4 : baseR;
+        const imgSize = radius * 2.3;
 
         // Shadow
         ctx.beginPath();
-        ctx.arc(x + 2, y + 3, radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.arc(x + 2, y + 3, radius + 1, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
         ctx.fill();
 
         // Base circle (subtle colored pedestal behind the image)
@@ -1412,7 +1954,7 @@
             ctx.shadowBlur = isSelected ? 15 : 8;
         }
         ctx.strokeStyle = isSelected ? '#ffd700' : (type === 'tiger' ? '#e74c3c' : '#4CAF50');
-        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.lineWidth = isSelected ? 3.5 : 2.5;
         ctx.stroke();
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
@@ -1420,8 +1962,8 @@
         // Selection glow
         if (isSelected) {
             ctx.beginPath();
-            ctx.arc(x, y, radius + 6, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
+            ctx.arc(x, y, radius + 7, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
             ctx.lineWidth = 3;
             ctx.stroke();
         }
@@ -1450,12 +1992,14 @@
 
         animPiece.skipKey = fromKey;
 
-        const duration = 200;
+        const duration = 280;
         const startTime = performance.now();
+        function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
         function frame(now) {
             const elapsed = now - startTime;
-            animPiece.progress = Math.min(elapsed / duration, 1);
+            const raw = Math.min(elapsed / duration, 1);
+            animPiece.progress = easeOutCubic(raw);
 
             // Halfway through animation, remove captured piece
             if (captureKey && animPiece.progress > 0.5) {
@@ -1476,7 +2020,6 @@
                 drawBoard();
                 callback();
             }
-            drawBoard();
         }
         requestAnimationFrame(frame);
     }
@@ -1515,6 +2058,15 @@
         document.getElementById('ai-thinking').classList.remove('show');
         updateUndoBtn();
         updateMoveList();
+
+        // Show contextual tooltip for new players
+        if (typeof showGameTooltip === 'function') {
+            if (currentTurn === 'goat') {
+                showGameTooltip('Click any empty spot to place a goat', 'place_goat');
+            } else {
+                showGameTooltip('Click a tiger, then click where to move', 'move_tiger');
+            }
+        }
 
         // If AI goes first (player is tiger, AI is goat — goat goes first)
         if (gameMode === 'ai' && playerSide !== currentTurn) {
@@ -1653,11 +2205,20 @@
         const key = posKey(gridPos.r, gridPos.c);
         const phase = getPhase();
 
+        const prevMoveCount = validMoves.length;
         if (currentTurn === 'goat') {
             handleGoatClick(key, phase);
         } else {
             handleTigerClick(key);
         }
+        // Start/stop pulsing animation for valid moves
+        if (validMoves.length > 0 && typeof startValidMoveAnimation === 'function') {
+            startValidMoveAnimation();
+        } else if (validMoves.length === 0 && typeof stopValidMoveAnimation === 'function') {
+            stopValidMoveAnimation();
+        }
+        // Hide tooltip on first interaction
+        if (typeof hideGameTooltip === 'function') hideGameTooltip();
     }
 
     function handleGoatClick(key, phase) {
@@ -1821,6 +2382,13 @@
 
         // Show rematch button in online mode
         rematchBtn.style.display = gameMode === 'online' ? 'inline-block' : 'none';
+
+        // Show strategy tip
+        const tipEl = document.getElementById('strategy-tip');
+        if (tipEl && typeof STRATEGY_TIPS !== 'undefined') {
+            tipEl.textContent = STRATEGY_TIPS[Math.floor(Math.random() * STRATEGY_TIPS.length)];
+            tipEl.style.display = 'block';
+        }
 
         overlay.classList.add('show');
         effectWin(); // confetti!
@@ -2293,6 +2861,7 @@
             playerSide = onlineRole;
 
             document.getElementById('start-menu').style.display = 'none';
+            showGameUI();
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
@@ -2400,11 +2969,18 @@
         onlineRole = null;
     }
 
+    function showGameUI() {
+        document.getElementById('toolbar').style.display = 'flex';
+        document.getElementById('stats-bar').style.display = 'flex';
+        document.querySelector('header').classList.add('compact');
+    }
+
     // ===== MENU / MODE SELECTION =====
     function selectMode(mode) {
         if (mode === 'human') {
             gameMode = 'human';
             document.getElementById('start-menu').style.display = 'none';
+            showGameUI();
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
@@ -2427,6 +3003,7 @@
     function startAIGame(side) {
         playerSide = side;
         document.getElementById('start-menu').style.display = 'none';
+        showGameUI();
         document.getElementById('game-container').classList.add('show');
         initLayout();
         initGame();
@@ -2446,7 +3023,16 @@
         document.getElementById('online-lobby').style.display = 'none';
         document.getElementById('online-create-info').style.display = 'none';
         document.getElementById('online-join-info').style.display = 'none';
+        document.getElementById('toolbar').style.display = 'none';
+        document.getElementById('stats-bar').style.display = 'none';
+        document.querySelector('header').classList.remove('compact');
         cleanupPeer();
+        // Show Quick Play if returning player
+        if (stats.played > 0) {
+            document.getElementById('quick-play-btn').style.display = 'block';
+        }
+        // Reset tooltip state for next game
+        if (typeof tooltipShown !== 'undefined') tooltipShown = {};
     }
 
     function toggleRules() {
@@ -2603,16 +3189,558 @@
         e.preventDefault();
     }, { passive: false });
 
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-        if (document.getElementById('game-container').classList.contains('show')) {
-            initLayout();
-            drawBoard();
-        }
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (document.getElementById('game-container').classList.contains('show')) {
+                initLayout();
+                drawBoard();
+            }
+        }, 100);
     });
+
+    // ===== BACKGROUND PARTICLES =====
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let bgParticles = [];
+
+    function initBackgroundAnimation() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        bgParticles = [];
+        const colors = ['rgba(233,69,96,', 'rgba(76,175,80,', 'rgba(255,215,0,'];
+        for (let i = 0; i < 30; i++) {
+            bgParticles.push({
+                x: Math.random() * bgCanvas.width,
+                y: Math.random() * bgCanvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                size: 2 + Math.random() * 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                alpha: 0.05 + Math.random() * 0.1
+            });
+        }
+    }
+
+    function animateBackground() {
+        bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        for (const p of bgParticles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = bgCanvas.width;
+            if (p.x > bgCanvas.width) p.x = 0;
+            if (p.y < 0) p.y = bgCanvas.height;
+            if (p.y > bgCanvas.height) p.y = 0;
+            bgCtx.beginPath();
+            bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            bgCtx.fillStyle = p.color + p.alpha + ')';
+            bgCtx.fill();
+        }
+        requestAnimationFrame(animateBackground);
+    }
+
+    window.addEventListener('resize', () => {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+    });
+
+    // ===== INTERACTIVE TUTORIAL =====
+    let tutorialStep = 0;
+    let tutorialAnimFrame = null;
+    const tutCanvas = document.getElementById('tutorial-canvas');
+    const tutCtx = tutCanvas.getContext('2d');
+
+    const tutorialSteps = [
+        {
+            title: 'The Board',
+            text: 'The game is played on a 5\u00d75 grid. Pieces move along the lines to adjacent intersections.',
+            draw: function(ctx, w, h, t) {
+                drawTutorialBoard(ctx, w, h);
+                // Pulse intersection dots
+                const pad = 30, cell = (w - 2 * pad) / 4;
+                for (let r = 0; r < 5; r++) {
+                    for (let c = 0; c < 5; c++) {
+                        const x = pad + c * cell, y = pad + r * cell;
+                        const pulse = 3 + Math.sin(t * 3 + r + c) * 2;
+                        ctx.beginPath();
+                        ctx.arc(x, y, pulse, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,215,0,${0.3 + Math.sin(t * 3 + r + c) * 0.2})`;
+                        ctx.fill();
+                    }
+                }
+            }
+        },
+        {
+            title: 'Tigers Start Here',
+            text: '4 Tigers begin at the four corners of the board. They are the hunters.',
+            draw: function(ctx, w, h, t) {
+                drawTutorialBoard(ctx, w, h);
+                const pad = 30, cell = (w - 2 * pad) / 4;
+                const corners = [[0,0],[0,4],[4,0],[4,4]];
+                for (const [r, c] of corners) {
+                    const x = pad + c * cell, y = pad + r * cell;
+                    // Glow
+                    const glow = 12 + Math.sin(t * 2) * 4;
+                    ctx.beginPath();
+                    ctx.arc(x, y, glow, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(233,69,96,${0.1 + Math.sin(t * 2) * 0.05})`;
+                    ctx.fill();
+                    drawMiniPiece(ctx, x, y, 'tiger', 14);
+                }
+            }
+        },
+        {
+            title: 'Place the Goats',
+            text: 'Goats are placed one per turn on any empty intersection. You have 20 goats to place before moving them.',
+            draw: function(ctx, w, h, t) {
+                drawTutorialBoard(ctx, w, h);
+                const pad = 30, cell = (w - 2 * pad) / 4;
+                const corners = [[0,0],[0,4],[4,0],[4,4]];
+                for (const [r, c] of corners) {
+                    drawMiniPiece(ctx, pad + c * cell, pad + r * cell, 'tiger', 14);
+                }
+                // Animate goat placement
+                const goatPositions = [[2,1],[1,2],[2,3],[3,2],[2,2]];
+                const idx = Math.floor(t * 0.7) % goatPositions.length;
+                for (let i = 0; i <= idx; i++) {
+                    const [gr, gc] = goatPositions[i];
+                    const gx = pad + gc * cell, gy = pad + gr * cell;
+                    if (i === idx) {
+                        // Animate current placement
+                        const frac = (t * 0.7) % 1;
+                        const scale = Math.min(frac * 2, 1);
+                        ctx.globalAlpha = scale;
+                        drawMiniPiece(ctx, gx, gy, 'goat', 14 * scale);
+                        ctx.globalAlpha = 1;
+                    } else {
+                        drawMiniPiece(ctx, gx, gy, 'goat', 14);
+                    }
+                }
+            }
+        },
+        {
+            title: 'Tigers Capture!',
+            text: 'Tigers capture goats by jumping over them to an empty spot in a straight line \u2014 like checkers!',
+            draw: function(ctx, w, h, t) {
+                drawTutorialBoard(ctx, w, h);
+                const pad = 30, cell = (w - 2 * pad) / 4;
+                // Setup: tiger at 0,0 - goat at 1,1 - empty at 2,2
+                drawMiniPiece(ctx, pad + 4 * cell, pad + 0 * cell, 'tiger', 14);
+                drawMiniPiece(ctx, pad + 0 * cell, pad + 4 * cell, 'tiger', 14);
+                drawMiniPiece(ctx, pad + 4 * cell, pad + 4 * cell, 'tiger', 14);
+                // Goats as obstacles
+                drawMiniPiece(ctx, pad + 1 * cell, pad + 0 * cell, 'goat', 14);
+                drawMiniPiece(ctx, pad + 0 * cell, pad + 1 * cell, 'goat', 14);
+                drawMiniPiece(ctx, pad + 2 * cell, pad + 1 * cell, 'goat', 14);
+
+                const cycle = t % 3;
+                if (cycle < 1.5) {
+                    // Tiger at 0,0, goat at 1,1
+                    const tigerX = pad + 0 * cell, tigerY = pad + 0 * cell;
+                    drawMiniPiece(ctx, tigerX, tigerY, 'tiger', 14);
+                    const goatAlpha = cycle < 1 ? 1 : Math.max(0, 1 - (cycle - 1) * 2);
+                    ctx.globalAlpha = goatAlpha;
+                    drawMiniPiece(ctx, pad + 1 * cell, pad + 1 * cell, 'goat', 14);
+                    ctx.globalAlpha = 1;
+                } else {
+                    // Tiger jumps to 2,2
+                    const frac = Math.min((cycle - 1.5) / 0.5, 1);
+                    const tx = pad + frac * 2 * cell, ty = pad + frac * 2 * cell;
+                    drawMiniPiece(ctx, tx, ty, 'tiger', 14);
+                    // Capture flash
+                    if (frac > 0.3) {
+                        ctx.beginPath();
+                        ctx.arc(pad + 1 * cell, pad + 1 * cell, 10 * (1 - frac), 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,100,50,${0.5 * (1 - frac)})`;
+                        ctx.fill();
+                    }
+                }
+            }
+        },
+        {
+            title: 'How to Win',
+            text: 'Ready to play? Choose a side and start your strategy!',
+            draw: function(ctx, w, h, t) {
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+                ctx.fillRect(0, 0, w, h);
+
+                // Tigers win section
+                ctx.fillStyle = '#e94560';
+                ctx.font = 'bold 13px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Tigers Win:', w * 0.28, 35);
+                ctx.fillStyle = '#ccc';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.fillText('Capture 5 goats', w * 0.28, 55);
+                // Draw 5 captured goats
+                for (let i = 0; i < 5; i++) {
+                    const gx = w * 0.12 + i * 22, gy = 80;
+                    drawMiniPiece(ctx, gx, gy, 'goat', 8);
+                    // X over them
+                    ctx.strokeStyle = 'rgba(233,69,96,0.8)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(gx - 6, gy - 6); ctx.lineTo(gx + 6, gy + 6);
+                    ctx.moveTo(gx + 6, gy - 6); ctx.lineTo(gx - 6, gy + 6);
+                    ctx.stroke();
+                }
+
+                // Divider
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(w / 2, 20);
+                ctx.lineTo(w / 2, 100);
+                ctx.stroke();
+
+                // Goats win section
+                ctx.fillStyle = '#4CAF50';
+                ctx.font = 'bold 13px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Goats Win:', w * 0.72, 35);
+                ctx.fillStyle = '#ccc';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.fillText('Trap all 4 tigers', w * 0.72, 55);
+                // Draw 4 trapped tigers
+                for (let i = 0; i < 4; i++) {
+                    const tx = w * 0.60 + i * 22, ty = 80;
+                    drawMiniPiece(ctx, tx, ty, 'tiger', 8);
+                    // Lock icon (circle)
+                    ctx.strokeStyle = 'rgba(76,175,80,0.8)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 11, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Pulsing "VS" in center
+                const vs_alpha = 0.5 + Math.sin(t * 2) * 0.3;
+                ctx.globalAlpha = vs_alpha;
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 16px Inter, sans-serif';
+                ctx.fillText('VS', w / 2, 70);
+                ctx.globalAlpha = 1;
+
+                // Mini board preview at bottom
+                const bpad = 20, bsize = 130, bcell = bsize / 4;
+                const bx = (w - bsize) / 2, by = 110;
+                drawMiniBoard(ctx, bx, bpad + by, bsize);
+                // Some pieces showing a game in progress
+                const miniPad = bx + 0, miniCell = bcell;
+                drawMiniPiece(ctx, bx + 0 * bcell, by + bpad + 0 * bcell, 'tiger', 8);
+                drawMiniPiece(ctx, bx + 3 * bcell, by + bpad + 1 * bcell, 'tiger', 8);
+                drawMiniPiece(ctx, bx + 1 * bcell, by + bpad + 3 * bcell, 'tiger', 8);
+                drawMiniPiece(ctx, bx + 4 * bcell, by + bpad + 4 * bcell, 'tiger', 8);
+                for (const [gr, gc] of [[1,0],[1,1],[2,1],[2,2],[2,3],[3,2],[3,3],[0,2]]) {
+                    drawMiniPiece(ctx, bx + gc * bcell, by + bpad + gr * bcell, 'goat', 7);
+                }
+            }
+        }
+    ];
+
+    function drawTutorialBoard(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const style = getComputedStyle(document.body);
+        ctx.fillStyle = style.getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+        ctx.fillRect(0, 0, w, h);
+
+        const pad = 30, cell = (w - 2 * pad) / 4;
+        ctx.strokeStyle = style.getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1.5;
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                const x = pad + c * cell, y = pad + r * cell;
+                if (c < 4) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cell, y); ctx.stroke(); }
+                if (r < 4) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + cell); ctx.stroke(); }
+                if ((r + c) % 2 === 0) {
+                    for (const [dr, dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
+                        const nr = r + dr, nc = c + dc;
+                        if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5) {
+                            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(pad + nc * cell, pad + nr * cell); ctx.stroke();
+                        }
+                    }
+                }
+                // Dot
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.fill();
+            }
+        }
+    }
+
+    function drawMiniBoard(ctx, bx, by, bsize) {
+        const bcell = bsize / 4;
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                const x = bx + c * bcell, y = by + r * bcell;
+                if (c < 4) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + bcell, y); ctx.stroke(); }
+                if (r < 4) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + bcell); ctx.stroke(); }
+                if ((r + c) % 2 === 0) {
+                    for (const [dr, dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
+                        const nr = r + dr, nc = c + dc;
+                        if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5) {
+                            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(bx + nc * bcell, by + nr * bcell); ctx.stroke();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function drawMiniPiece(ctx, x, y, type, radius) {
+        const grad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
+        if (type === 'tiger') {
+            grad.addColorStop(0, '#ff9a6c');
+            grad.addColorStop(1, '#a04020');
+        } else {
+            grad.addColorStop(0, '#c8e6c9');
+            grad.addColorStop(1, '#2e5d32');
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Draw SVG image if available
+        const img = getPieceImage(type);
+        if (img && img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(x, y, radius - 1, 0, Math.PI * 2);
+            ctx.clip();
+            const imgSize = radius * 2.2;
+            ctx.drawImage(img, x - imgSize / 2, y - imgSize / 2, imgSize, imgSize);
+            ctx.restore();
+        }
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = type === 'tiger' ? '#e74c3c' : '#4CAF50';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+
+    function openTutorial() {
+        tutorialStep = 0;
+        document.getElementById('tutorial-overlay').classList.add('show');
+        updateTutorialUI();
+        startTutorialAnimation();
+    }
+
+    function closeTutorial() {
+        document.getElementById('tutorial-overlay').classList.remove('show');
+        if (tutorialAnimFrame) { cancelAnimationFrame(tutorialAnimFrame); tutorialAnimFrame = null; }
+        try { localStorage.setItem('baghchal_visited', '1'); } catch(e) {}
+    }
+
+    function nextTutorialStep() {
+        if (tutorialStep < tutorialSteps.length - 1) {
+            tutorialStep++;
+            updateTutorialUI();
+        } else {
+            closeTutorial();
+        }
+    }
+
+    function prevTutorialStep() {
+        if (tutorialStep > 0) {
+            tutorialStep--;
+            updateTutorialUI();
+        }
+    }
+
+    function updateTutorialUI() {
+        const step = tutorialSteps[tutorialStep];
+        document.getElementById('tutorial-title').textContent = step.title;
+        document.getElementById('tutorial-text').textContent = step.text;
+        document.getElementById('tutorial-prev').disabled = tutorialStep === 0;
+        const nextBtn = document.getElementById('tutorial-next');
+        nextBtn.textContent = tutorialStep === tutorialSteps.length - 1 ? 'Start Playing!' : 'Next';
+        // Update dots
+        const dots = document.querySelectorAll('.tutorial-dot');
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === tutorialStep));
+    }
+
+    function startTutorialAnimation() {
+        if (tutorialAnimFrame) cancelAnimationFrame(tutorialAnimFrame);
+        const startTime = performance.now();
+        function frame(now) {
+            const t = (now - startTime) / 1000;
+            const step = tutorialSteps[tutorialStep];
+            if (step && document.getElementById('tutorial-overlay').classList.contains('show')) {
+                const w = tutCanvas.width, h = tutCanvas.height;
+                step.draw(tutCtx, w, h, t);
+                tutorialAnimFrame = requestAnimationFrame(frame);
+            }
+        }
+        tutorialAnimFrame = requestAnimationFrame(frame);
+    }
+
+    // ===== STRATEGY TIPS =====
+    const STRATEGY_TIPS = [
+        'Tip: Place goats in the center early to control the board.',
+        'Tip: Try to form walls of goats to block tiger movement.',
+        'Tip: Tigers should aim to capture goats near edges \u2014 they\'re more vulnerable there.',
+        'Tip: Don\'t rush! Think 2-3 moves ahead before placing or moving.',
+        'Tip: Connected groups of goats are much harder for tigers to break through.',
+        'Tip: As tigers, keep your options open \u2014 mobility is key.',
+        'Tip: Corner positions are strong for trapping tigers.',
+        'Tip: Watch for tiger capture threats along diagonals!',
+        'Tip: In Phase 2, coordinate goat movements to close traps.',
+        'Tip: As tigers, try to separate isolated goats from the group.'
+    ];
+
+    // ===== ACHIEVEMENTS =====
+    const ACHIEVEMENTS = [
+        { id: 'first_win', name: 'First Victory', icon: '\u{1F3C6}', desc: 'Win your first game', check: s => s.played >= 1 && (s.tigerWins > 0 || s.goatWins > 0) },
+        { id: 'streak_3', name: 'On a Roll', icon: '\u{1F525}', desc: '3 wins in a row', check: s => s.streak >= 3 },
+        { id: 'streak_5', name: 'Unstoppable', icon: '\u26A1', desc: '5 wins in a row', check: s => s.streak >= 5 },
+        { id: 'elo_1200', name: 'Rising Star', icon: '\u2B50', desc: 'Reach 1200 ELO', check: s => (s.elo || 1000) >= 1200 },
+        { id: 'elo_1500', name: 'Master Strategist', icon: '\u{1F451}', desc: 'Reach 1500 ELO', check: s => (s.elo || 1000) >= 1500 },
+        { id: 'games_10', name: 'Dedicated Player', icon: '\u{1F3AE}', desc: 'Play 10 games', check: s => s.played >= 10 },
+        { id: 'games_50', name: 'Veteran', icon: '\u{1F396}', desc: 'Play 50 games', check: s => s.played >= 50 },
+        { id: 'hard_win', name: 'Giant Slayer', icon: '\u{1F409}', desc: 'Beat Hard AI', check: () => false } // checked separately
+    ];
+
+    let unlockedAchievements = new Set();
+
+    function loadAchievements() {
+        try {
+            const data = JSON.parse(localStorage.getItem('baghchal_achievements'));
+            if (Array.isArray(data)) unlockedAchievements = new Set(data);
+        } catch(e) {}
+    }
+
+    function saveAchievements() {
+        try { localStorage.setItem('baghchal_achievements', JSON.stringify([...unlockedAchievements])); } catch(e) {}
+    }
+
+    function checkAchievements(extraCheck) {
+        for (const ach of ACHIEVEMENTS) {
+            if (unlockedAchievements.has(ach.id)) continue;
+            let earned = false;
+            if (ach.id === 'hard_win') {
+                earned = extraCheck === 'hard_win';
+            } else {
+                earned = ach.check(stats);
+            }
+            if (earned) {
+                unlockedAchievements.add(ach.id);
+                saveAchievements();
+                showAchievementToast(ach);
+            }
+        }
+    }
+
+    function showAchievementToast(ach) {
+        const toast = document.createElement('div');
+        toast.className = 'achievement-toast';
+        toast.innerHTML = `<span class="toast-icon">${ach.icon}</span><div class="toast-text"><span class="toast-title">${ach.name}</span><span class="toast-desc">${ach.desc}</span></div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4200);
+    }
+
+    // ===== ELO RANK BADGES =====
+    function getEloRank(elo) {
+        if (elo >= 1500) return { name: 'Expert', icon: '\u{1F451}' };
+        if (elo >= 1300) return { name: 'Advanced', icon: '\u{1F48E}' };
+        if (elo >= 1100) return { name: 'Intermediate', icon: '\u2B50' };
+        return { name: 'Beginner', icon: '\u{1F331}' };
+    }
+
+    // ===== CONTEXTUAL TOOLTIPS =====
+    let tooltipShown = {};
+    let tooltipTimer = null;
+
+    function showGameTooltip(text, key) {
+        if (tooltipShown[key]) return;
+        tooltipShown[key] = true;
+        const el = document.getElementById('game-tooltip');
+        el.textContent = text;
+        el.style.display = 'block';
+        if (tooltipTimer) clearTimeout(tooltipTimer);
+        tooltipTimer = setTimeout(() => { el.style.display = 'none'; }, 6000);
+    }
+
+    function hideGameTooltip() {
+        const el = document.getElementById('game-tooltip');
+        el.style.display = 'none';
+        if (tooltipTimer) clearTimeout(tooltipTimer);
+    }
+
+    // ===== QUICK PLAY =====
+    function quickPlay() {
+        gameMode = 'ai';
+        aiDifficulty = 'medium';
+        playerSide = 'goat';
+        document.getElementById('start-menu').style.display = 'none';
+        showGameUI();
+        document.getElementById('game-container').classList.add('show');
+        initLayout();
+        initGame();
+    }
+
+    // ===== PULSING VALID MOVES ANIMATION =====
+    let validMoveAnimFrame = null;
+
+    function startValidMoveAnimation() {
+        if (validMoveAnimFrame) return;
+        function pulseFrame() {
+            if (validMoves.length === 0) {
+                validMoveAnimFrame = null;
+                return;
+            }
+            drawBoard();
+            validMoveAnimFrame = requestAnimationFrame(pulseFrame);
+        }
+        validMoveAnimFrame = requestAnimationFrame(pulseFrame);
+    }
+
+    function stopValidMoveAnimation() {
+        if (validMoveAnimFrame) {
+            cancelAnimationFrame(validMoveAnimFrame);
+            validMoveAnimFrame = null;
+        }
+    }
 
     // ===== INIT =====
     preloadPieceImages();
     loadStats();
+    loadAchievements();
+    initBackgroundAnimation();
+    animateBackground();
+
+    // Set intro images once pieces are loaded
+    function setIntroImages() {
+        const tigerImg = getPieceImage('tiger');
+        const goatImg = getPieceImage('goat');
+        if (tigerImg && tigerImg.complete) {
+            document.getElementById('intro-tiger-img').src = tigerImg.src;
+        }
+        if (goatImg && goatImg.complete) {
+            document.getElementById('intro-goat-img').src = goatImg.src;
+        }
+    }
+    // Try immediately and also after a short delay for image loading
+    setTimeout(setIntroImages, 100);
+    setTimeout(setIntroImages, 500);
+
+    // Show Quick Play if returning player
+    if (stats.played > 0) {
+        document.getElementById('quick-play-btn').style.display = 'block';
+    }
+
+    // Auto-open tutorial for first-time visitors
+    try {
+        if (!localStorage.getItem('baghchal_visited')) {
+            setTimeout(() => openTutorial(), 800);
+        }
+    } catch(e) {}
     </script>
 </body>
 </html>
