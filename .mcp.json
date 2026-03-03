@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "ScraplingServer": {
+      "command": "/usr/local/bin/scrapling",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}
