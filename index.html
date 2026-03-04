@@ -12,12 +12,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
+            --bg-primary: #1c1b2e;
+            --bg-secondary: #182240;
             --bg-tertiary: #0f3460;
             --panel-bg: rgba(255,255,255,0.05);
-            --panel-border: rgba(255,255,255,0.1);
-            --text-primary: #e0e0e0;
+            --panel-border: rgba(255,255,255,0.15);
+            --text-primary: #e8e6e3;
             --text-secondary: #a8a8a8;
             --text-muted: #bbb;
             --accent: #e94560;
@@ -434,7 +434,15 @@
             box-shadow: 0 12px 32px rgba(0,0,0,0.35);
         }
         .mode-card:active { transform: translateY(-2px) scale(0.98); }
-        .mode-card .icon { font-size: 2.5rem; margin-bottom: 12px; position: relative; z-index: 1; }
+        .mode-card .icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: rgba(233,69,96,0.12);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px; position: relative; z-index: 1;
+            transition: transform 0.3s, background 0.3s;
+        }
+        .mode-card:hover .icon { transform: scale(1.1); background: rgba(233,69,96,0.2); }
+        .mode-card .icon svg { width: 28px; height: 28px; color: var(--accent); }
         .mode-card .title { font-weight: bold; font-size: 1.1rem; margin-bottom: 6px; position: relative; z-index: 1; }
         .mode-card .desc { font-size: 0.8rem; color: var(--text-muted); position: relative; z-index: 1; }
         .mode-card .badge {
@@ -539,17 +547,29 @@
         }
         .diff-btn {
             padding: 10px 24px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 2px solid var(--panel-border);
             background: var(--panel-bg);
             color: var(--text-primary);
             font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .diff-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
+            pointer-events: none;
         }
         .diff-btn:hover {
             border-color: var(--accent);
             background: rgba(233, 69, 96, 0.15);
+            box-shadow: 0 4px 16px rgba(233,69,96,0.2);
+            transform: translateY(-2px);
         }
 
         .side-select {
@@ -567,17 +587,28 @@
         }
         .side-btn {
             padding: 12px 28px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 2px solid var(--panel-border);
             background: var(--panel-bg);
             color: var(--text-primary);
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .side-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
+            pointer-events: none;
         }
         .side-btn:hover {
             border-color: var(--accent);
             transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(233,69,96,0.2);
         }
 
         /* ===== GAME AREA ===== */
@@ -618,19 +649,26 @@
         .stat {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 0.9rem;
+            padding: 7px 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            transition: background 0.2s;
         }
+        .stat:hover { background: rgba(255,255,255,0.06); }
         .stat-label { color: var(--text-secondary); }
         .stat-value { color: #fff; font-weight: bold; }
 
         .turn-indicator {
             text-align: center;
-            padding: 12px;
+            padding: 14px 16px;
             margin-bottom: 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
             transition: all 0.3s;
         }
         .turn-indicator.your-turn {
@@ -677,6 +715,19 @@
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 12px 40px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.05);
+            transition: box-shadow 0.6s ease;
+        }
+        #board-container[data-turn="tiger"] {
+            box-shadow: 0 0 30px rgba(233,69,96,0.3), 0 0 60px rgba(233,69,96,0.1),
+                        0 4px 24px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(233,69,96,0.15);
+        }
+        #board-container[data-turn="goat"] {
+            box-shadow: 0 0 30px rgba(76,175,80,0.3), 0 0 60px rgba(76,175,80,0.1),
+                        0 4px 24px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(76,175,80,0.15);
+        }
+        #board-container[data-turn="gameover"] {
+            box-shadow: 0 0 30px rgba(255,215,0,0.35), 0 0 60px rgba(255,215,0,0.12),
+                        0 4px 24px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,215,0,0.15);
         }
         #board-canvas {
             position: absolute;
@@ -757,20 +808,34 @@
             padding: 10px;
             margin-top: 10px;
             border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+            border-radius: 12px 12px 0 0;
         }
         .btn-restart {
             background: linear-gradient(135deg, var(--accent), var(--tiger-grad-end));
             color: #fff;
+            box-shadow: 0 2px 8px rgba(233,69,96,0.25);
         }
         .btn-restart:hover {
             background: linear-gradient(135deg, var(--accent-hover), var(--accent));
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+            box-shadow: 0 4px 16px rgba(233, 69, 96, 0.45);
         }
         .btn-undo {
             background: rgba(255,255,255,0.1);
@@ -780,6 +845,7 @@
         .btn-undo:hover {
             background: rgba(255,255,255,0.15);
             transform: translateY(-1px);
+            box-shadow: 0 2px 12px rgba(255,255,255,0.1);
         }
         .btn-undo:disabled {
             opacity: 0.4;
@@ -804,6 +870,10 @@
             justify-content: center;
             margin-bottom: 4px;
             flex-wrap: wrap;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
         }
         .toolbar label {
             font-size: 0.8rem;
@@ -835,8 +905,8 @@
             display: flex;
             gap: 16px;
             justify-content: center;
-            padding: 4px;
-            font-size: 0.78rem;
+            padding: 6px 12px;
+            font-size: 0.85rem;
             color: var(--text-secondary);
         }
         .stats-bar span { white-space: nowrap; letter-spacing: 0.02em; }
@@ -858,18 +928,33 @@
         .message-overlay.show { display: flex; }
         .message-box {
             background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
-            border: 2px solid var(--accent);
+            border: 2px solid var(--gold);
             border-radius: 20px;
             padding: 36px;
             text-align: center;
             max-width: 400px;
-            animation: scaleIn 0.3s ease;
+            animation: scaleIn 0.3s ease, winGlowPulse 3s ease-in-out infinite;
         }
         @keyframes scaleIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        .message-box h2 { font-size: 1.8rem; margin-bottom: 8px; color: var(--gold); }
+        @keyframes winGlowPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.1); }
+            50% { box-shadow: 0 0 50px rgba(255,215,0,0.25); }
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.3); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .message-box h2 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
         .message-box p { font-size: 1rem; color: #ccc; margin-bottom: 20px; }
         .message-box .btn {
             width: auto;
@@ -1054,18 +1139,17 @@
         <h3>Choose Game Mode</h3>
         <div class="mode-cards">
             <div class="mode-card" onclick="selectMode('human')">
-                <div class="icon">👥</div>
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="18" cy="8" r="3"/><path d="M21 21v-2a3 3 0 0 0-3-3h-1"/></svg></div>
                 <div class="title">2 Players</div>
                 <div class="desc">Play with a friend on the same device</div>
             </div>
             <div class="mode-card" onclick="selectMode('ai')">
-                <span class="badge">Popular</span>
-                <div class="icon">🤖</div>
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M9 15h6"/><line x1="12" y1="1" x2="12" y2="4"/><circle cx="12" cy="1" r="1" fill="currentColor"/></svg></div>
                 <div class="title">vs Computer</div>
                 <div class="desc">Challenge the AI opponent</div>
             </div>
             <div class="mode-card" onclick="selectMode('online')">
-                <div class="icon">🌐</div>
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="4" ry="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
                 <div class="title">Online</div>
                 <div class="desc">Play with a friend via link</div>
             </div>
@@ -1127,11 +1211,6 @@
                 <span class="stat-label">Tigers Trapped</span>
                 <span class="stat-value" id="tigers-trapped">0</span>
             </div>
-            <h3 style="margin-top: 16px;">Win Conditions</h3>
-            <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
-                <p><span style="color: var(--tiger-color); font-weight: bold;">Tigers</span> win by capturing 5 goats</p>
-                <p style="margin-top: 4px;"><span style="color: var(--goat-color); font-weight: bold;">Goats</span> win by trapping all 4 tigers</p>
-            </div>
             <button class="btn btn-undo" id="undo-btn" onclick="undoMove()" disabled>Undo Move</button>
             <button class="btn btn-restart" onclick="restartGame()">New Game</button>
             <button class="btn btn-menu" onclick="backToMenu()">Main Menu</button>
@@ -1173,7 +1252,7 @@
     <!-- Win Overlay -->
     <div class="message-overlay" id="message-overlay">
         <div class="message-box">
-            <div id="win-piece-icon" style="font-size:3rem; margin-bottom:8px;"></div>
+            <div id="win-piece-icon" style="font-size:4rem; margin-bottom:12px; animation: bounceIn 0.5s ease;"></div>
             <h2 id="message-title">Game Over</h2>
             <p id="message-text">Someone wins!</p>
             <p id="elo-change" style="display:none; font-size:0.9rem; font-weight:bold; margin-bottom:12px;"></p>
@@ -1790,6 +1869,29 @@
         ctx.roundRect(0, 0, w, h, 16);
         ctx.fill();
 
+        // Classic skin: subtle texture + vignette for depth
+        if (currentSkin === 'classic') {
+            // Subtle cross-hatch texture
+            ctx.save();
+            ctx.globalAlpha = 0.035;
+            ctx.strokeStyle = 'rgba(255,255,255,1)';
+            ctx.lineWidth = 0.5;
+            const step = Math.max(12, cellSize * 0.15);
+            for (let i = -h; i < w + h; i += step) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + h, h); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(i + h, 0); ctx.lineTo(i, h); ctx.stroke();
+            }
+            ctx.restore();
+            // Radial vignette (darker corners)
+            const vignette = ctx.createRadialGradient(w/2, h/2, w*0.25, w/2, h/2, w*0.75);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.35)');
+            ctx.fillStyle = vignette;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, w, h, 16);
+            ctx.fill();
+        }
+
         // Neon glow effect for neon skin
         if (currentSkin === 'neon') {
             ctx.shadowColor = 'rgba(0,255,200,0.3)';
@@ -1852,16 +1954,32 @@
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
 
-        // Intersection dots for empty spots
+        // Intersection markers for empty spots
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 const key = posKey(r, c);
                 if (!board[key]) {
                     const { x, y } = gridToPixel(r, c);
-                    ctx.beginPath();
-                    ctx.arc(x, y, Math.max(3, cellSize * 0.035), 0, Math.PI * 2);
-                    ctx.fillStyle = skin.dotColor || 'rgba(255,255,255,0.25)';
-                    ctx.fill();
+                    const dotR = Math.max(3, cellSize * 0.035);
+                    if (currentSkin === 'classic') {
+                        // Decorative crosshair markers
+                        const armLen = Math.max(5, cellSize * 0.06);
+                        ctx.strokeStyle = skin.dotColor || 'rgba(255,255,255,0.25)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(x - armLen, y); ctx.lineTo(x + armLen, y);
+                        ctx.moveTo(x, y - armLen); ctx.lineTo(x, y + armLen);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(x, y, dotR * 0.6, 0, Math.PI * 2);
+                        ctx.fillStyle = skin.dotColor || 'rgba(255,255,255,0.25)';
+                        ctx.fill();
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(x, y, dotR, 0, Math.PI * 2);
+                        ctx.fillStyle = skin.dotColor || 'rgba(255,255,255,0.25)';
+                        ctx.fill();
+                    }
                 }
             }
         }
@@ -2399,6 +2517,12 @@
     function updateUI() {
         const turnBox = document.getElementById('turn-box');
         const phaseBadge = document.getElementById('phase-badge');
+
+        // Dynamic board glow
+        const boardContainer = document.getElementById('board-container');
+        if (boardContainer) {
+            boardContainer.setAttribute('data-turn', gameOver ? 'gameover' : currentTurn);
+        }
 
         if (gameOver) {
             turnEl.textContent = 'Game Over';
