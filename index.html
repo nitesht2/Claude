@@ -773,7 +773,6 @@
         #board-canvas {
             position: absolute;
             top: 0; left: 0;
-            width: 100%; height: 100%;
             cursor: pointer;
         }
 
@@ -1374,6 +1373,18 @@
     </div>
 
     <script>
+    // roundRect polyfill for older browsers
+    if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, radii) {
+            const r = typeof radii === 'number' ? radii : (Array.isArray(radii) ? radii[0] : 0);
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            this.closePath();
+        };
+    }
     // =====================================================
     const BOARD_SIZE = 5;
     const TOTAL_GOATS = 20;
@@ -1900,7 +1911,9 @@
     // ===== DRAWING =====
     function drawBoard() {
         const w = canvas.width, h = canvas.height;
+        if (w === 0 || h === 0) return; // canvas not sized yet
         ctx.clearRect(0, 0, w, h);
+      try {
 
         // Apply shake offset
         if (shakeAmount > 0) {
@@ -1923,7 +1936,7 @@
                 ctx.fillStyle = skin.boardBg;
             }
         } else {
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+            ctx.fillStyle = (getComputedStyle(document.body).getPropertyValue('--board-bg') || '').trim() || 'rgba(30,30,50,0.8)';
         }
         ctx.beginPath();
         ctx.roundRect(0, 0, w, h, 16);
@@ -1958,7 +1971,7 @@
             ctx.shadowBlur = 8;
         }
 
-        const lineColor = skin.lineColor || getComputedStyle(document.body).getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
+        const lineColor = skin.lineColor || (getComputedStyle(document.body).getPropertyValue('--grid-line') || '').trim() || 'rgba(255,255,255,0.15)';
         ctx.strokeStyle = lineColor;
         ctx.lineWidth = skin.lineWidth || Math.max(2, cellSize * 0.018);
 
@@ -2092,6 +2105,7 @@
 
         // Draw particles and confetti on top
         drawParticles();
+      } catch (e) { console.error('drawBoard error:', e); }
     }
 
     function drawPiece(x, y, type, isSelected) {
@@ -3681,7 +3695,7 @@
             text: 'Ready to play? Choose a side and start your strategy!',
             draw: function(ctx, w, h, t) {
                 ctx.clearRect(0, 0, w, h);
-                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+                ctx.fillStyle = (getComputedStyle(document.body).getPropertyValue('--board-bg') || '').trim() || 'rgba(30,30,50,0.8)';
                 ctx.fillRect(0, 0, w, h);
 
                 // Tigers win section
@@ -3761,11 +3775,11 @@
     function drawTutorialBoard(ctx, w, h) {
         ctx.clearRect(0, 0, w, h);
         const style = getComputedStyle(document.body);
-        ctx.fillStyle = style.getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+        ctx.fillStyle = (style.getPropertyValue('--board-bg') || '').trim() || 'rgba(30,30,50,0.8)';
         ctx.fillRect(0, 0, w, h);
 
         const pad = 30, cell = (w - 2 * pad) / 4;
-        ctx.strokeStyle = style.getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = (style.getPropertyValue('--grid-line') || '').trim() || 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 1.5;
         for (let r = 0; r < 5; r++) {
             for (let c = 0; c < 5; c++) {
