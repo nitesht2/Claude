@@ -1304,7 +1304,7 @@
                 <button onclick="exitReplay()">&#10005; Exit</button>
             </div>
             <div id="board-container" style="position:relative;">
-                <canvas id="board-canvas"></canvas>
+                <canvas id="board-canvas" width="340" height="340"></canvas>
                 <div class="game-tooltip" id="game-tooltip" style="display:none;"></div>
             </div>
         </div>
@@ -1496,8 +1496,8 @@
 
     const SKIN_CONFIG = {
         classic: {
-            boardBg: null,  // use CSS variable
-            lineColor: null,
+            boardBg: 'rgba(25, 25, 45, 0.9)',
+            lineColor: 'rgba(255,255,255,0.2)',
             lineWidth: 1.5,
             dotColor: 'rgba(255,255,255,0.25)',
             pieceStyle: 'gradient' // gradient, flat, or emoji-only
@@ -1777,8 +1777,33 @@
         cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
     }
 
+    // Auto-resize canvas when container size changes (font loading, window resize, etc.)
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(() => {
+            if (!document.getElementById('game-container').classList.contains('show')) return;
+            const newSize = Math.round(container.getBoundingClientRect().width);
+            if (newSize > 0 && newSize !== boardPixelSize) {
+                initLayout();
+                drawBoard();
+            }
+        }).observe(container);
+    }
+
     function gridToPixel(r, c) {
         return { x: padding + c * cellSize, y: padding + r * cellSize };
+    }
+
+    // Ensure board renders after game start — retries if canvas is blank
+    function ensureBoardRendered() {
+        requestAnimationFrame(() => {
+            initLayout();
+            drawBoard();
+            // Double-check after a short delay (covers font loading, reflows)
+            setTimeout(() => {
+                initLayout();
+                drawBoard();
+            }, 150);
+        });
     }
 
     // Detect touch device for larger hit targets
@@ -3185,7 +3210,7 @@
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
-            requestAnimationFrame(() => { initLayout(); drawBoard(); });
+            ensureBoardRendered();
 
             // Send role confirmation
             peerConn.send({ type: 'start', role: onlineRole });
@@ -3307,7 +3332,7 @@
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
-            requestAnimationFrame(() => { initLayout(); drawBoard(); });
+            ensureBoardRendered();
         } else if (mode === 'online') {
             document.getElementById('online-lobby').style.display = 'flex';
             document.getElementById('difficulty-select').classList.remove('show');
@@ -3336,7 +3361,7 @@
         initLayout();
         initGame();
         // Safety: redraw after layout stabilizes
-        requestAnimationFrame(() => { initLayout(); drawBoard(); });
+        ensureBoardRendered();
     }
 
     function restartGame() {
@@ -4015,7 +4040,7 @@
         document.getElementById('game-container').classList.add('show');
         initLayout();
         initGame();
-        requestAnimationFrame(() => { initLayout(); drawBoard(); });
+        ensureBoardRendered();
     }
 
     // ===== PULSING VALID MOVES ANIMATION =====
@@ -4078,8 +4103,7 @@
     // Safety redraw: ensure board renders after all resources load
     window.addEventListener('load', () => {
         if (document.getElementById('game-container').classList.contains('show')) {
-            initLayout();
-            drawBoard();
+            ensureBoardRendered();
         }
     });
 
