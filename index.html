@@ -3,11 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Play Bagh Chal, the ancient Nepali strategy board game of Tigers vs Goats. Challenge the AI, play online with friends, or learn the 200-year-old game.">
+    <meta name="theme-color" content="#1c1b2e">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bagh Chal - The Tiger Moving Game of Nepal">
+    <meta property="og:description" content="Play the ancient Nepali strategy board game. 4 Tigers vs 20 Goats. Challenge the AI or play with friends online.">
+    <meta property="og:url" content="https://nitesht2.github.io/Claude/">
+    <meta property="og:image" content="https://nitesht2.github.io/Claude/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bagh Chal - The Tiger Moving Game of Nepal">
+    <meta name="twitter:description" content="Play the ancient Nepali strategy board game. 4 Tigers vs 20 Goats. Challenge the AI or play with friends online.">
+    <meta name="twitter:image" content="https://nitesht2.github.io/Claude/og-image.png">
+
     <title>Bagh Chal - बाघ चाल</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐅</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐅</text></svg>">
+    <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@700&display=swap" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet"></noscript>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -434,6 +455,13 @@
             box-shadow: 0 12px 32px rgba(0,0,0,0.35);
         }
         .mode-card:active { transform: translateY(-2px) scale(0.98); }
+        .mode-card.selected {
+            border-color: var(--accent);
+            background: rgba(233, 69, 96, 0.15);
+            box-shadow: 0 8px 24px rgba(233, 69, 96, 0.25);
+            transform: translateY(-4px) scale(1.02);
+        }
+        .mode-card.selected::before { opacity: 1; }
         .mode-card .icon {
             width: 56px; height: 56px; border-radius: 50%;
             background: rgba(233,69,96,0.12);
@@ -571,6 +599,12 @@
             box-shadow: 0 4px 16px rgba(233,69,96,0.2);
             transform: translateY(-2px);
         }
+        .diff-btn.selected {
+            border-color: var(--accent);
+            background: rgba(233, 69, 96, 0.2);
+            box-shadow: 0 4px 16px rgba(233, 69, 96, 0.3);
+            transform: translateY(-2px);
+        }
 
         .side-select {
             display: none;
@@ -609,6 +643,12 @@
             border-color: var(--accent);
             transform: translateY(-2px);
             box-shadow: 0 4px 16px rgba(233,69,96,0.2);
+        }
+        .side-btn.selected {
+            border-color: var(--accent);
+            background: rgba(233, 69, 96, 0.2);
+            box-shadow: 0 4px 16px rgba(233, 69, 96, 0.3);
+            transform: translateY(-2px);
         }
 
         /* ===== GAME AREA ===== */
@@ -773,6 +813,24 @@
         .rules-panel .tiger-text { color: var(--tiger-color); font-weight: bold; }
         .rules-panel .goat-text { color: var(--goat-color); font-weight: bold; }
 
+        .move-history-toggle {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            min-height: 48px;
+            transition: all 0.3s;
+        }
+        .move-history-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
         .move-history-panel {
             background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
             border: 1px solid var(--panel-border);
@@ -1050,9 +1108,22 @@
             .mode-card { width: 130px; padding: 18px 14px; }
             .mode-card .icon { font-size: 2rem; }
             #board-container {
-                width: min(calc(100vh - 160px), 95vw);
-                height: min(calc(100vh - 160px), 95vw);
-                min-width: 300px; min-height: 300px;
+                width: min(calc(100vh - 140px), 96vw);
+                height: min(calc(100vh - 140px), 96vw);
+                min-width: 280px; min-height: 280px;
+            }
+            .btn { min-height: 48px; padding: 12px; }
+            .diff-btn, .side-btn { min-height: 48px; }
+            .mode-card { min-height: 56px; }
+            .move-history-toggle { display: block; }
+            .move-history-panel {
+                max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+                padding: 0; border: none; box-shadow: none;
+            }
+            .move-history-panel.expanded {
+                max-height: 300px; padding: 20px;
+                border: 1px solid var(--panel-border); overflow-y: auto;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             }
             .intro-matchup { flex-direction: column; gap: 10px; }
             .intro-vs { display: none; }
@@ -1065,10 +1136,16 @@
         @media (max-width: 460px) {
             header h1 { font-size: 1.6rem; }
             .info-panel, .right-panel { max-width: 95vw; }
-            .btn { min-height: 44px; }
-            .diff-btn, .side-btn { min-height: 48px; }
-            .mode-card { min-height: 48px; }
             .tutorial-canvas-wrap { width: 180px; height: 180px; }
+        }
+        @media (max-width: 320px) {
+            header h1 { font-size: 1.3rem; }
+            header h2 { font-size: 0.65rem; }
+            .mode-card { width: 100%; }
+            .mode-cards { flex-direction: column; gap: 10px; }
+            #board-container { width: 95vw !important; height: 95vw !important; min-width: 280px; min-height: 280px; }
+            .tutorial-canvas-wrap { width: 160px; height: 160px; }
+            .start-menu { padding: 16px 10px; }
         }
     </style>
 </head>
@@ -1077,6 +1154,7 @@
     <header>
         <h1><span class="devanagari">बाघ चाल</span> — Bagh Chal</h1>
         <h2>The Tiger Moving Game of Nepal</h2>
+        <button id="pwa-install-btn" onclick="installPWA()" style="display:none; margin-top:6px; padding:6px 16px; border-radius:8px; border:1px solid var(--panel-border); background:var(--panel-bg); color:var(--text-secondary); font-size:0.75rem; cursor:pointer; transition:all 0.3s;">Install App</button>
     </header>
 
     <!-- Toolbar -->
@@ -1138,17 +1216,17 @@
 
         <h3>Choose Game Mode</h3>
         <div class="mode-cards">
-            <div class="mode-card" onclick="selectMode('human')">
+            <div class="mode-card" onclick="selectMode('human', event)">
                 <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="18" cy="8" r="3"/><path d="M21 21v-2a3 3 0 0 0-3-3h-1"/></svg></div>
                 <div class="title">2 Players</div>
                 <div class="desc">Play with a friend on the same device</div>
             </div>
-            <div class="mode-card" onclick="selectMode('ai')">
+            <div class="mode-card" onclick="selectMode('ai', event)">
                 <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M9 15h6"/><line x1="12" y1="1" x2="12" y2="4"/><circle cx="12" cy="1" r="1" fill="currentColor"/></svg></div>
                 <div class="title">vs Computer</div>
                 <div class="desc">Challenge the AI opponent</div>
             </div>
-            <div class="mode-card" onclick="selectMode('online')">
+            <div class="mode-card" onclick="selectMode('online', event)">
                 <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="4" ry="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
                 <div class="title">Online</div>
                 <div class="desc">Play with a friend via link</div>
@@ -1158,17 +1236,17 @@
         <div class="difficulty-select" id="difficulty-select">
             <h4>Select Difficulty</h4>
             <div class="diff-buttons">
-                <button class="diff-btn" onclick="selectDifficulty('easy')">Easy</button>
-                <button class="diff-btn" onclick="selectDifficulty('medium')">Medium</button>
-                <button class="diff-btn" onclick="selectDifficulty('hard')">Hard</button>
+                <button class="diff-btn" onclick="selectDifficulty('easy', event)">Easy</button>
+                <button class="diff-btn" onclick="selectDifficulty('medium', event)">Medium</button>
+                <button class="diff-btn" onclick="selectDifficulty('hard', event)">Hard</button>
             </div>
         </div>
 
         <div class="side-select" id="side-select">
             <h4>Play as</h4>
             <div class="side-buttons">
-                <button class="side-btn" onclick="startAIGame('goat')">🐐 Goats</button>
-                <button class="side-btn" onclick="startAIGame('tiger')">🐅 Tigers</button>
+                <button class="side-btn" onclick="startAIGame('goat', event)">🐐 Goats</button>
+                <button class="side-btn" onclick="startAIGame('tiger', event)">🐅 Tigers</button>
             </div>
         </div>
 
@@ -1225,7 +1303,7 @@
                 <button onclick="exitReplay()">&#10005; Exit</button>
             </div>
             <div id="board-container" style="position:relative;">
-                <canvas id="board-canvas"></canvas>
+                <canvas id="board-canvas" width="340" height="340"></canvas>
                 <div class="game-tooltip" id="game-tooltip" style="display:none;"></div>
             </div>
         </div>
@@ -1242,6 +1320,7 @@
                     <li>Goats cannot jump</li>
                 </ul>
             </div>
+            <button class="move-history-toggle" onclick="this.nextElementSibling.classList.toggle('expanded'); this.textContent = this.textContent.includes('Show') ? 'Hide Move History' : 'Show Move History';">Show Move History</button>
             <div class="move-history-panel">
                 <h3>Move History</h3>
                 <div id="move-list"></div>
@@ -1293,6 +1372,18 @@
     </div>
 
     <script>
+    // roundRect polyfill for older browsers
+    if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, radii) {
+            const r = typeof radii === 'number' ? radii : (Array.isArray(radii) ? radii[0] : 0);
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            this.closePath();
+        };
+    }
     // =====================================================
     const BOARD_SIZE = 5;
     const TOTAL_GOATS = 20;
@@ -1402,9 +1493,17 @@
     // ===== THEME & BOARD SKINS =====
     let currentSkin = 'classic';
 
+    // Get CSS variable value with reliable fallback
+    function cssVar(name, fallback) {
+        try {
+            const val = getComputedStyle(document.body).getPropertyValue(name);
+            return (val && val.trim()) || fallback;
+        } catch (e) { return fallback; }
+    }
+
     const SKIN_CONFIG = {
         classic: {
-            boardBg: null,  // use CSS variable
+            boardBg: null,  // uses CSS variable via cssVar()
             lineColor: null,
             lineWidth: 1.5,
             dotColor: 'rgba(255,255,255,0.25)',
@@ -1658,6 +1757,7 @@
     let moveHistory = [];     // array of { board, goatsPlaced, goatsCaptured, currentTurn, description }
     let moveDescriptions = []; // display log
     let moveCount = 0;
+    let positionCounts = {};
 
     // Game mode
     let gameMode = 'human'; // 'human' or 'ai'
@@ -1676,15 +1776,41 @@
     let animPiece = null; // { type, fromX, fromY, toX, toY, progress, captureKey }
 
     function initLayout() {
-        boardPixelSize = container.offsetWidth;
+        const rect = container.getBoundingClientRect();
+        boardPixelSize = Math.round(rect.width) || container.offsetWidth || 340;
         canvas.width = boardPixelSize;
         canvas.height = boardPixelSize;
         padding = Math.max(35, Math.round(boardPixelSize * 0.08));
         cellSize = (boardPixelSize - 2 * padding) / (BOARD_SIZE - 1);
     }
 
+    // Auto-resize canvas when container size changes (font loading, window resize, etc.)
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(() => {
+            if (!document.getElementById('game-container').classList.contains('show')) return;
+            const newSize = Math.round(container.getBoundingClientRect().width);
+            if (newSize > 0 && newSize !== boardPixelSize) {
+                initLayout();
+                drawBoard();
+            }
+        }).observe(container);
+    }
+
     function gridToPixel(r, c) {
         return { x: padding + c * cellSize, y: padding + r * cellSize };
+    }
+
+    // Ensure board renders after game start — retries if canvas is blank
+    function ensureBoardRendered() {
+        requestAnimationFrame(() => {
+            initLayout();
+            drawBoard();
+            // Double-check after a short delay (covers font loading, reflows)
+            setTimeout(() => {
+                initLayout();
+                drawBoard();
+            }, 150);
+        });
     }
 
     // Detect touch device for larger hit targets
@@ -1817,7 +1943,9 @@
     // ===== DRAWING =====
     function drawBoard() {
         const w = canvas.width, h = canvas.height;
+        if (w === 0 || h === 0) return; // canvas not sized yet
         ctx.clearRect(0, 0, w, h);
+      try {
 
         // Apply shake offset
         if (shakeAmount > 0) {
@@ -1840,7 +1968,7 @@
                 ctx.fillStyle = skin.boardBg;
             }
         } else {
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+            ctx.fillStyle = cssVar('--board-bg', 'rgba(25,25,45,0.9)');
         }
         ctx.beginPath();
         ctx.roundRect(0, 0, w, h, 16);
@@ -1875,7 +2003,7 @@
             ctx.shadowBlur = 8;
         }
 
-        const lineColor = skin.lineColor || getComputedStyle(document.body).getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
+        const lineColor = skin.lineColor || cssVar('--grid-line', 'rgba(255,255,255,0.2)');
         ctx.strokeStyle = lineColor;
         ctx.lineWidth = skin.lineWidth || Math.max(2, cellSize * 0.018);
 
@@ -2009,6 +2137,7 @@
 
         // Draw particles and confetti on top
         drawParticles();
+      } catch (e) { console.error('drawBoard error:', e); }
     }
 
     function drawPiece(x, y, type, isSelected) {
@@ -2174,6 +2303,7 @@
         moveHistory = [];
         moveDescriptions = [];
         moveCount = 0;
+        positionCounts = {};
         aiThinking = false;
         replaySnapshots = [];
         replayActive = false;
@@ -2456,6 +2586,7 @@
             return;
         }
         currentTurn = currentTurn === 'goat' ? 'tiger' : 'goat';
+        recordPosition();
         updateUI();
         drawBoard();
 
@@ -2556,7 +2687,7 @@
     }
 
     // ===== AI ENGINE (Minimax + Alpha-Beta + Opening Book + Enhanced Eval) =====
-    const DEPTH_MAP = { easy: 2, medium: 4, hard: 6 };
+    const DEPTH_MAP = { easy: 2, medium: 5, hard: 8 };
 
     function cloneBoard(b) { return { ...b }; }
 
@@ -2636,11 +2767,35 @@
         return moves;
     }
 
-    // Move ordering: evaluate captures first for better pruning
+    // Move ordering: prioritize captures, center moves, and blocking moves
     function orderMoves(moves, isTiger) {
         return moves.sort((a, b) => {
-            const aScore = a.capture ? 100 : 0;
-            const bScore = b.capture ? 100 : 0;
+            let aScore = 0, bScore = 0;
+            // Captures highest priority
+            if (a.capture) aScore += 1000;
+            if (b.capture) bScore += 1000;
+            // Moves toward center
+            if (a.to) {
+                const ap = parseKey(a.to);
+                aScore += (4 - Math.abs(ap.r - 2) - Math.abs(ap.c - 2)) * 10;
+            }
+            if (b.to) {
+                const bp = parseKey(b.to);
+                bScore += (4 - Math.abs(bp.r - 2) - Math.abs(bp.c - 2)) * 10;
+            }
+            // For goat placements, prefer positions adjacent to tigers (blocking)
+            if (!isTiger) {
+                if (a.placement && a.to) {
+                    for (const p of getAdjacentPositions(a.to)) {
+                        if (board[p] === 'tiger') aScore += 50;
+                    }
+                }
+                if (b.placement && b.to) {
+                    for (const p of getAdjacentPositions(b.to)) {
+                        if (board[p] === 'tiger') bScore += 50;
+                    }
+                }
+            }
             return bScore - aScore;
         });
     }
@@ -2651,9 +2806,10 @@
         // Captured goats (very high weight)
         score += gc * 60;
 
-        // Trapped tigers (very high weight for goats)
+        // Tiger analysis
         let trappedTigers = 0;
-        let semiTrappedTigers = 0; // only 1 move available
+        let semiTrappedTigers = 0;
+        let nearTrappedTigers = 0;
         let tigerMobility = 0;
         let tigerCaptures = 0;
         let tigerPositionScore = 0;
@@ -2668,27 +2824,44 @@
 
                     if (moveCount === 0) trappedTigers++;
                     else if (moveCount === 1) semiTrappedTigers++;
+                    else if (moveCount === 2) nearTrappedTigers++;
 
                     tigerMobility += moveCount;
                     tigerCaptures += captureCount;
 
-                    // Position: center is best, edges are worst
                     const distFromCenter = Math.abs(r - 2) + Math.abs(c - 2);
                     tigerPositionScore += (4 - distFromCenter) * 2;
+
+                    // Trap detection: count adjacent goats surrounding tiger
+                    const adjPositions = getAdjacentPositions(key);
+                    let adjacentGoats = 0;
+                    for (const adj of adjPositions) {
+                        if (b[adj] === 'goat') adjacentGoats++;
+                    }
+                    if (adjacentGoats / adjPositions.length >= 0.75) {
+                        score -= 30;
+                    }
                 }
             }
 
         score -= trappedTigers * 80;
-        score -= semiTrappedTigers * 20;
+        score -= semiTrappedTigers * 25;
+        score -= nearTrappedTigers * 10;
         score += tigerMobility * 4;
         score += tigerCaptures * 20;
         score += tigerPositionScore;
+
+        // Exponential penalty for multiple trapped tigers
+        if (trappedTigers >= 2) {
+            score -= (trappedTigers * trappedTigers) * 15;
+        }
 
         // Goat evaluation
         let goatCount = 0;
         let goatConnections = 0;
         let edgeGoats = 0;
         let goatDefenseScore = 0;
+        let goatWallScore = 0;
 
         for (let r = 0; r < BOARD_SIZE; r++)
             for (let c = 0; c < BOARD_SIZE; c++) {
@@ -2696,41 +2869,47 @@
                 if (b[key] === 'goat') {
                     goatCount++;
 
-                    // Goats on the edge are vulnerable to capture
                     if (r === 0 || r === 4 || c === 0 || c === 4) edgeGoats++;
 
-                    // Connected goats form defensive walls
                     for (const adj of getAdjacentPositions(key)) {
                         if (b[adj] === 'goat') goatConnections++;
                     }
 
-                    // Goats adjacent to tigers help block them
                     for (const adj of getAdjacentPositions(key)) {
                         if (b[adj] === 'tiger') goatDefenseScore += 3;
                     }
+
+                    // Wall detection: consecutive goats in lines
+                    if (c < 4 && b[posKey(r, c + 1)] === 'goat') goatWallScore += 2;
+                    if (r < 4 && b[posKey(r + 1, c)] === 'goat') goatWallScore += 2;
                 }
             }
 
-        // Goat clustering helps trapping (negative = good for goats)
+        // Goat clustering helps trapping
         if (gp >= 8) {
             score -= goatConnections * 3;
             score -= goatDefenseScore;
+            score -= goatWallScore;
         }
-        score += edgeGoats * 2; // edge goats are slightly bad for goat player
+        score += edgeGoats * 2;
+
+        // Endgame: tiger close to winning
+        if (gc >= 3) {
+            score += (gc - 2) * 25;
+            score += tigerCaptures * 15;
+        }
 
         // Center control
         const center = posKey(2, 2);
         if (b[center] === 'tiger') score += 10;
         else if (b[center] === 'goat') score -= 8;
 
-        // Cross points control (adjacent to center)
         const crossPoints = ['1,2','3,2','2,1','2,3'];
         for (const cp of crossPoints) {
             if (b[cp] === 'tiger') score += 3;
             else if (b[cp] === 'goat') score -= 2;
         }
 
-        // Threat: if a tiger can capture on next move, it's dangerous
         if (tigerCaptures > 0) score += tigerCaptures * 8;
 
         return score;
@@ -2751,22 +2930,31 @@
         return h;
     }
 
+    function recordPosition() {
+        const hash = boardHash(board, goatsPlaced, goatsCaptured, currentTurn === 'tiger');
+        positionCounts[hash] = (positionCounts[hash] || 0) + 1;
+    }
+
     function minimax(b, gp, gc, depth, alpha, beta, isTigerTurn) {
         if (gc >= GOATS_TO_WIN) return 10000 + depth;
         if (countTrappedTigers(b) === 4) return -10000 - depth;
         if (depth === 0) return evaluateBoard(b, gc, gp);
 
-        // Check transposition table
+        // Check transposition table with bound types
         const hash = boardHash(b, gp, gc, isTigerTurn);
         const cached = transTable.get(hash);
-        if (cached && cached.depth >= depth) return cached.score;
+        if (cached && cached.depth >= depth) {
+            if (cached.flag === 'exact') return cached.score;
+            if (cached.flag === 'lower' && cached.score >= beta) return cached.score;
+            if (cached.flag === 'upper' && cached.score <= alpha) return cached.score;
+        }
 
         let result;
+        let flag = 'exact';
 
         if (isTigerTurn) {
-            let moves = getAllTigerMoves(b);
+            let moves = orderMoves(getAllTigerMoves(b), true);
             if (moves.length === 0) return -10000 - depth;
-            moves = orderMoves(moves, true);
             let maxEval = -Infinity;
             for (const move of moves) {
                 const nb = cloneBoard(b);
@@ -2777,11 +2965,11 @@
                 const ev = minimax(nb, gp, newGc, depth - 1, alpha, beta, false);
                 maxEval = Math.max(maxEval, ev);
                 alpha = Math.max(alpha, ev);
-                if (beta <= alpha) break;
+                if (beta <= alpha) { flag = 'lower'; break; }
             }
             result = maxEval;
         } else {
-            let moves = getAllGoatMoves(b, gp);
+            let moves = orderMoves(getAllGoatMoves(b, gp), false);
             if (moves.length === 0) return evaluateBoard(b, gc, gp);
             let minEval = Infinity;
             for (const move of moves) {
@@ -2792,14 +2980,14 @@
                 const ev = minimax(nb, newGp, gc, depth - 1, alpha, beta, true);
                 minEval = Math.min(minEval, ev);
                 beta = Math.min(beta, ev);
-                if (beta <= alpha) break;
+                if (beta <= alpha) { flag = 'upper'; break; }
             }
             result = minEval;
         }
 
-        // Store in transposition table
+        // Store in transposition table with bound type
         if (transTable.size > MAX_TRANS_SIZE) transTable.clear();
-        transTable.set(hash, { score: result, depth });
+        transTable.set(hash, { score: result, depth, flag });
 
         return result;
     }
@@ -2813,46 +3001,75 @@
             if (bookMove) return bookMove;
         }
 
-        const depth = DEPTH_MAP[aiDifficulty] || 4;
-        let bestMove = null;
-        let bestScore = isAITiger ? -Infinity : Infinity;
+        const maxDepth = DEPTH_MAP[aiDifficulty] || 4;
+        const timeLimit = aiDifficulty === 'hard' ? 2000 : (aiDifficulty === 'medium' ? 1000 : 500);
+        const startTime = performance.now();
 
-        const moves = isAITiger
+        let moves = isAITiger
             ? orderMoves(getAllTigerMoves(board), true)
-            : getAllGoatMoves(board, goatsPlaced);
+            : orderMoves(getAllGoatMoves(board, goatsPlaced), false);
 
         // Easy: 30% random moves
         if (aiDifficulty === 'easy' && Math.random() < 0.3 && moves.length > 0) {
             return moves[Math.floor(Math.random() * moves.length)];
         }
 
-        // Clear transposition table each turn for freshness
         transTable.clear();
 
-        for (const move of moves) {
-            const nb = cloneBoard(board);
-            let newGp = goatsPlaced, newGc = goatsCaptured;
+        let bestMove = moves[0] || null;
+        let bestScore = isAITiger ? -Infinity : Infinity;
 
-            if (isAITiger) {
-                nb[move.from] = null;
-                nb[move.to] = 'tiger';
-                if (move.capture) { nb[move.capture] = null; newGc++; }
-            } else {
-                if (move.placement) { nb[move.to] = 'goat'; newGp++; }
-                else { nb[move.from] = null; nb[move.to] = 'goat'; }
+        // Iterative deepening with time limit
+        for (let depth = 1; depth <= maxDepth; depth++) {
+            let depthBestMove = null;
+            let depthBestScore = isAITiger ? -Infinity : Infinity;
+            let searchAborted = false;
+
+            for (const move of moves) {
+                if (performance.now() - startTime > timeLimit) {
+                    searchAborted = true;
+                    break;
+                }
+
+                const nb = cloneBoard(board);
+                let newGp = goatsPlaced, newGc = goatsCaptured;
+
+                if (isAITiger) {
+                    nb[move.from] = null;
+                    nb[move.to] = 'tiger';
+                    if (move.capture) { nb[move.capture] = null; newGc++; }
+                } else {
+                    if (move.placement) { nb[move.to] = 'goat'; newGp++; }
+                    else { nb[move.from] = null; nb[move.to] = 'goat'; }
+                }
+
+                let score = minimax(nb, newGp, newGc, depth - 1, -Infinity, Infinity, !isAITiger);
+
+                // Penalize moves that repeat positions
+                const moveHash = boardHash(nb, newGp, newGc, !isAITiger);
+                const repeatCount = positionCounts[moveHash] || 0;
+                if (repeatCount >= 1) {
+                    score += isAITiger ? -50 * repeatCount : 50 * repeatCount;
+                }
+
+                if (isAITiger) {
+                    if (score > depthBestScore || (score === depthBestScore && Math.random() < 0.3)) {
+                        depthBestScore = score; depthBestMove = move;
+                    }
+                } else {
+                    if (score < depthBestScore || (score === depthBestScore && Math.random() < 0.3)) {
+                        depthBestScore = score; depthBestMove = move;
+                    }
+                }
             }
 
-            const score = minimax(nb, newGp, newGc, depth - 1, -Infinity, Infinity, !isAITiger);
-
-            if (isAITiger) {
-                if (score > bestScore || (score === bestScore && Math.random() < 0.3)) {
-                    bestScore = score; bestMove = move;
-                }
-            } else {
-                if (score < bestScore || (score === bestScore && Math.random() < 0.3)) {
-                    bestScore = score; bestMove = move;
-                }
+            if (!searchAborted && depthBestMove) {
+                bestMove = depthBestMove;
+                bestScore = depthBestScore;
             }
+
+            if (searchAborted) break;
+            if (Math.abs(bestScore) > 9000) break; // Found winning move
         }
 
         return bestMove;
@@ -2917,6 +3134,18 @@
     let peerConn = null;
     let onlineRole = null; // 'goat' or 'tiger'
     let roomCode = '';
+    let peerJSLoaded = typeof Peer !== 'undefined';
+
+    function loadPeerJS() {
+        return new Promise((resolve, reject) => {
+            if (peerJSLoaded || typeof Peer !== 'undefined') { peerJSLoaded = true; resolve(); return; }
+            const s = document.createElement('script');
+            s.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+            s.onload = () => { peerJSLoaded = true; resolve(); };
+            s.onerror = () => reject(new Error('Failed to load PeerJS'));
+            document.head.appendChild(s);
+        });
+    }
 
     function generateRoomCode() {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2932,7 +3161,10 @@
         document.getElementById('online-create-info').style.display = 'block';
         document.getElementById('online-join-info').style.display = 'none';
         document.getElementById('room-code').textContent = roomCode;
-        document.getElementById('online-status').textContent = 'Connecting...';
+        document.getElementById('online-status').textContent = 'Loading multiplayer...';
+
+        loadPeerJS().then(() => {
+            document.getElementById('online-status').textContent = 'Connecting...';
 
         try {
             peer = new Peer(peerId);
@@ -2954,6 +3186,9 @@
         peer.on('error', (err) => {
             document.getElementById('online-status').textContent = 'Error: ' + err.type + '. Try creating a new game.';
         });
+        }).catch(() => {
+            document.getElementById('online-status').textContent = 'Failed to load multiplayer. Check your connection.';
+        });
     }
 
     function showJoinInput() {
@@ -2970,23 +3205,29 @@
         }
 
         const peerId = 'baghchal-' + code;
-        document.getElementById('join-status').textContent = 'Connecting...';
+        document.getElementById('join-status').textContent = 'Loading multiplayer...';
 
-        try {
-            peer = new Peer();
-        } catch (e) {
-            document.getElementById('join-status').textContent = 'Failed to connect. Try again.';
-            return;
-        }
+        loadPeerJS().then(() => {
+            document.getElementById('join-status').textContent = 'Connecting...';
 
-        peer.on('open', () => {
-            peerConn = peer.connect(peerId);
-            onlineRole = 'tiger'; // joiner plays tiger
-            setupPeerConnection();
-        });
+            try {
+                peer = new Peer();
+            } catch (e) {
+                document.getElementById('join-status').textContent = 'Failed to connect. Try again.';
+                return;
+            }
 
-        peer.on('error', (err) => {
-            document.getElementById('join-status').textContent = 'Could not find game. Check the code.';
+            peer.on('open', () => {
+                peerConn = peer.connect(peerId);
+                onlineRole = 'tiger'; // joiner plays tiger
+                setupPeerConnection();
+            });
+
+            peer.on('error', (err) => {
+                document.getElementById('join-status').textContent = 'Could not find game. Check the code.';
+            });
+        }).catch(() => {
+            document.getElementById('join-status').textContent = 'Failed to load multiplayer. Check your connection.';
         });
     }
 
@@ -3000,6 +3241,7 @@
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
+            ensureBoardRendered();
 
             // Send role confirmation
             peerConn.send({ type: 'start', role: onlineRole });
@@ -3111,7 +3353,9 @@
     }
 
     // ===== MENU / MODE SELECTION =====
-    function selectMode(mode) {
+    function selectMode(mode, event) {
+        document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+        if (event) event.currentTarget.classList.add('selected');
         if (mode === 'human') {
             gameMode = 'human';
             document.getElementById('start-menu').style.display = 'none';
@@ -3119,6 +3363,7 @@
             document.getElementById('game-container').classList.add('show');
             initLayout();
             initGame();
+            ensureBoardRendered();
         } else if (mode === 'online') {
             document.getElementById('online-lobby').style.display = 'flex';
             document.getElementById('difficulty-select').classList.remove('show');
@@ -3130,18 +3375,24 @@
         }
     }
 
-    function selectDifficulty(diff) {
+    function selectDifficulty(diff, event) {
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+        if (event) event.currentTarget.classList.add('selected');
         aiDifficulty = diff;
         document.getElementById('side-select').classList.add('show');
     }
 
-    function startAIGame(side) {
+    function startAIGame(side, event) {
+        document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('selected'));
+        if (event) event.currentTarget.classList.add('selected');
         playerSide = side;
         document.getElementById('start-menu').style.display = 'none';
         showGameUI();
         document.getElementById('game-container').classList.add('show');
         initLayout();
         initGame();
+        // Safety: redraw after layout stabilizes
+        ensureBoardRendered();
     }
 
     function restartGame() {
@@ -3345,7 +3596,8 @@
         bgCanvas.height = window.innerHeight;
         bgParticles = [];
         const colors = ['rgba(233,69,96,', 'rgba(76,175,80,', 'rgba(255,215,0,'];
-        for (let i = 0; i < 30; i++) {
+        const particleCount = window.innerWidth < 600 ? 12 : 30;
+        for (let i = 0; i < particleCount; i++) {
             bgParticles.push({
                 x: Math.random() * bgCanvas.width,
                 y: Math.random() * bgCanvas.height,
@@ -3359,6 +3611,7 @@
     }
 
     function animateBackground() {
+        if (document.hidden) { requestAnimationFrame(animateBackground); return; }
         bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
         for (const p of bgParticles) {
             p.x += p.vx;
@@ -3498,7 +3751,7 @@
             text: 'Ready to play? Choose a side and start your strategy!',
             draw: function(ctx, w, h, t) {
                 ctx.clearRect(0, 0, w, h);
-                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+                ctx.fillStyle = cssVar('--board-bg', 'rgba(25,25,45,0.9)');
                 ctx.fillRect(0, 0, w, h);
 
                 // Tigers win section
@@ -3577,12 +3830,11 @@
 
     function drawTutorialBoard(ctx, w, h) {
         ctx.clearRect(0, 0, w, h);
-        const style = getComputedStyle(document.body);
-        ctx.fillStyle = style.getPropertyValue('--board-bg') || 'rgba(30,30,50,0.8)';
+        ctx.fillStyle = cssVar('--board-bg', 'rgba(25,25,45,0.9)');
         ctx.fillRect(0, 0, w, h);
 
         const pad = 30, cell = (w - 2 * pad) / 4;
-        ctx.strokeStyle = style.getPropertyValue('--grid-line') || 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = cssVar('--grid-line', 'rgba(255,255,255,0.2)');
         ctx.lineWidth = 1.5;
         for (let r = 0; r < 5; r++) {
             for (let c = 0; c < 5; c++) {
@@ -3818,6 +4070,7 @@
         document.getElementById('game-container').classList.add('show');
         initLayout();
         initGame();
+        ensureBoardRendered();
     }
 
     // ===== PULSING VALID MOVES ANIMATION =====
@@ -3876,6 +4129,47 @@
             setTimeout(() => openTutorial(), 800);
         }
     } catch(e) {}
+
+    // Safety redraw: ensure board renders after all resources load
+    window.addEventListener('load', () => {
+        if (document.getElementById('game-container').classList.contains('show')) {
+            ensureBoardRendered();
+        }
+    });
+
+    // ===== PWA: Service Worker Registration =====
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('SW registered', reg.scope))
+            .catch(err => console.warn('SW registration failed', err));
+    }
+
+    // ===== PWA: Install Prompt =====
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.style.display = 'inline-block';
+    });
+
+    function installPWA() {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(result => {
+            if (result.outcome === 'accepted') {
+                const btn = document.getElementById('pwa-install-btn');
+                if (btn) btn.style.display = 'none';
+            }
+            deferredInstallPrompt = null;
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.style.display = 'none';
+        deferredInstallPrompt = null;
+    });
     </script>
 </body>
 </html>
