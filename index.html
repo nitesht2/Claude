@@ -4306,12 +4306,15 @@
     }
 
     // Pointer events (unified mouse + touch)
+    let pointerUpHandled = false;
+
     canvas.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
+        if (e.pointerType === 'touch') e.preventDefault();
         canvas.setPointerCapture(e.pointerId);
+        pointerUpHandled = false;
         const coords = getCanvasCoords(e);
         handlePointerDown(coords.x, coords.y);
-    });
+    }, { passive: false });
 
     canvas.addEventListener('pointermove', (e) => {
         const coords = getCanvasCoords(e);
@@ -4319,8 +4322,16 @@
     });
 
     canvas.addEventListener('pointerup', (e) => {
+        pointerUpHandled = true;
         const coords = getCanvasCoords(e);
         handlePointerUp(coords.x, coords.y);
+    });
+
+    // Fallback click handler - ensures clicks always work
+    canvas.addEventListener('click', (e) => {
+        if (pointerUpHandled) { pointerUpHandled = false; return; }
+        const coords = getCanvasCoords(e);
+        handleClick(coords.x, coords.y);
     });
 
     canvas.addEventListener('pointerleave', () => {
@@ -4342,6 +4353,7 @@
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 
     // Prevent scrolling when touching the board area
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
     container.addEventListener('touchmove', (e) => {
         e.preventDefault();
     }, { passive: false });
