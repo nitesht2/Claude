@@ -2860,6 +2860,11 @@
         moveCount = 0;
         positionCounts = {};
         aiThinking = false;
+        hoverMoves = [];
+        lastHoverKey = null;
+        isDragging = false;
+        dragPiece = null;
+        dragStartPos = null;
         replaySnapshots = [];
         replayActive = false;
         if (replayInterval) { clearInterval(replayInterval); replayInterval = null; }
@@ -3132,6 +3137,8 @@
 
     function switchTurn() {
         recordSnapshot(); // record state after move for replay
+        hoverMoves = [];
+        lastHoverKey = null;
         const winner = checkWinCondition();
         if (winner) {
             gameOver = true;
@@ -3223,8 +3230,8 @@
     // ── UI Updates ──
 
     function updateUI() {
-        const turnBox = document.getElementById('turn-box');
-        const phaseBadge = document.getElementById('phase-badge');
+        const turnEl = document.getElementById('turn-indicator');
+        const phaseEl = document.getElementById('phase-indicator');
 
         // Dynamic board glow
         const boardContainer = document.getElementById('board-container');
@@ -4137,13 +4144,18 @@
         if (gameMode === 'ai' && currentTurn !== playerSide) return;
         if (gameMode === 'online' && currentTurn !== playerSide) return;
 
-        dragStartPos = { x: px, y: py };
         dragMoved = false;
 
         const phase = getPhase();
 
-        // In phase 1 for goats, don't start drag (just place)
-        if (currentTurn === 'goat' && phase === 1) return;
+        // In phase 1 for goats, don't start drag (just place via click)
+        if (currentTurn === 'goat' && phase === 1) {
+            dragStartPos = null;
+            dragPiece = null;
+            return;
+        }
+
+        dragStartPos = { x: px, y: py };
 
         // Find piece at click position
         const found = findPieceAtPixel(px, py);
@@ -4250,6 +4262,12 @@
             handleClick(px, py);
         }
         dragMoved = false;
+        // Reset cursor based on state
+        if (selectedPiece) {
+            canvas.style.cursor = 'pointer';
+        } else {
+            canvas.style.cursor = 'default';
+        }
     }
 
     // Extract move execution from click handlers for reuse with drag-drop
