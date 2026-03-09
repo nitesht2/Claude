@@ -52,7 +52,7 @@
             --goat-grad-end: #2e7d32;
             --goat-border: #4CAF50;
             --board-bg: rgba(15, 14, 26, 0.95);
-            --grid-line: rgba(255,255,255,0.15);
+            --grid-line: rgba(255,255,255,0.35);
             --gold: #ffd700;
             --glow-tiger: rgba(255,99,71,0.15);
             --glow-goat: rgba(102,187,106,0.15);
@@ -1637,11 +1637,12 @@
 
     const SKIN_CONFIG = {
         classic: {
-            boardBg: null,  // uses CSS variable via cssVar()
-            lineColor: null,
-            lineWidth: 1.5,
-            dotColor: 'rgba(255,255,255,0.25)',
-            pieceStyle: 'gradient' // gradient, flat, or emoji-only
+            boardBg: '#151525',
+            boardBg2: '#1a1a35',
+            lineColor: 'rgba(255,255,255,0.35)',
+            lineWidth: 2,
+            dotColor: 'rgba(255,255,255,0.35)',
+            pieceStyle: 'gradient'
         },
         wood: {
             boardBg: '#8B6914',
