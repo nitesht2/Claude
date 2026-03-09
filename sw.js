@@ -1,4 +1,4 @@
-const CACHE_NAME = 'baghchal-v4';
+const CACHE_NAME = 'baghchal-v5';
 const ASSETS_TO_CACHE = [
     '/baagchal/',
     '/baagchal/index.html',
